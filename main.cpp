@@ -5,6 +5,9 @@
 #include "include/models/QuestionPaper.h"
 #include "include/models/Timer.h"
 #include "include/storage/StudentRepository.h"
+#include "include/storage/ExamRepository.h"
+#include "include/services/AuthService.h"
+#include "include/services/ExamService.h"
 
 using namespace std;
 
@@ -48,6 +51,8 @@ int main() {
     30,
     10
     );
+    ExamService examService;
+    examService.startExam(exam);
 
     exam.displayExam();
 
@@ -76,5 +81,19 @@ int main() {
 
     cout << "Student saved successfully." << endl;
 
-    return 0;
+    ExamRepository examRepository;
+    examRepository.saveExam(exam, "data/exams.txt");
+    cout << "Exam saved successfully." << endl;
+
+    AuthService authService;
+
+    if (authService.authenticate(&student, "kaushika", "1234"))
+    cout << "Student authenticated successfully." << endl;
+    else
+    cout << "Student authentication failed." << endl;
+
+    if (authService.authenticate(&admin, "admin", "admin123"))
+    cout << "Admin authenticated successfully." << endl;
+    else
+    cout << "Admin authentication failed." << endl;
 }

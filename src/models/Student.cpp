@@ -13,3 +13,10 @@ Student::Student(int id, string name, string username,
 void Student::displayRole() {
     cout << "Role: Student" << endl;
 }
+string Student::getDepartment() {
+    return department;
+}
+
+int Student::getYear() {
+    return year;
+}
