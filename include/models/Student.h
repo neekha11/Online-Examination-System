@@ -13,6 +13,9 @@ public:
             string password, string department, int year);
 
     void displayRole() override;
+
+    string getDepartment();
+    int getYear();
 };
 
 #endif
