@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login – ExamEra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/login.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <a class="brand" href="index.html">
+          <span class="brand-logo">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z" />
+              <path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" />
+            </svg>
+          </span>
+          <span class="brand-text"
+            ><strong>ExamEra</strong><small>ONLINE EXAMINATION</small></span
+          >
+        </a>
+        <nav class="header-nav">
+          <a href="#" class="help-link">Help center</a>
+          <a href="#" class="support-btn">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+              <path
+                d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"
+              />
+            </svg>
+            Contact support
+          </a>
+        </nav>
+      </header>
+
+      <main class="login-main">
+        <a href="index.html" class="back-link">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5M11 18l-6-6 6-6" />
+          </svg>
+          Back to role selection
+        </a>
+
+        <section class="login-card admin">
+          <div class="login-head">
+            <span class="icon-box">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+            </span>
+            <div>
+              <h1>Admin Login</h1>
+              <span class="tag">FOR EDUCATORS</span>
+            </div>
+          </div>
+          <p class="login-sub">
+            Sign in to create examinations and review results.
+          </p>
+
+          <form class="form" id="login-form" novalidate>
+            <div class="field">
+              <label for="user">Admin email</label>
+              <div class="input-wrap">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 21a8 8 0 0 1 16 0" />
+                </svg>
+                <input
+                  id="user"
+                  name="user"
+                  type="text"
+                  autocomplete="username"
+                  placeholder="name@institution.edu"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="password">Password</label>
+              <div class="input-wrap">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="4" y="11" width="16" height="10" rx="2" />
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                </svg>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="toggle-pw"
+                  aria-label="Show password"
+                  aria-pressed="false"
+                >
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="check"
+                ><input type="checkbox" name="remember" /> Keep me signed
+                in</label
+              >
+              <a href="#">Forgot password?</a>
+            </div>
+
+            <p class="form-error" id="form-error" role="alert">
+              Enter your admin email and password to continue.
+            </p>
+
+            <button type="submit" class="submit">
+              <span>Sign in</span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </button>
+          </form>
+
+          <p class="switch-role">
+            Are you a student?
+            <a href="student-login.html">Go to Student Login</a>
+          </p>
+        </section>
+
+        <p class="note">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4M12 8h.01" />
+          </svg>
+          Use the credentials provided by your institution.
+          <a href="#">Need help signing in?</a>
+        </p>
+      </main>
+
+      <footer class="footer">
+        <span>© 2026 Examora. All rights reserved.</span>
+        <span class="secure">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="4" y="11" width="16" height="10" rx="2" />
+            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+          </svg>
+          Secure access. Confident assessment.
+        </span>
+        <span class="footer-links"
+          ><a href="#">Privacy policy</a><a href="#">Terms of use</a></span
+        >
+      </footer>
+    </div>
+
+    <script>
+      const form = document.getElementById("login-form");
+      const error = document.getElementById("form-error");
+      const pw = document.getElementById("password");
+      const toggle = document.querySelector(".toggle-pw");
+
+      toggle.addEventListener("click", () => {
+        const show = pw.type === "password";
+        pw.type = show ? "text" : "password";
+        toggle.setAttribute("aria-pressed", show);
+        toggle.setAttribute(
+          "aria-label",
+          show ? "Hide password" : "Show password",
+        );
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const ok = form.user.value.trim() && pw.value;
+        error.classList.toggle("show", !ok);
+        if (ok) {
+          // TODO: send credentials to your backend, then redirect
+          // window.location.href = 'admin-dashboard.html';
+        }
+      });
+    </script>
+  </body>
+</html>
