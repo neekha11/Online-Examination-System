@@ -1,0 +1,12 @@
+:root {
+  --layout-container-width: 1296px;
+  --layout-container-spacing: 32px;
+}
+
+.container {
+  max-width: calc(
+    var(--layout-container-width) + (var(--layout-container-spacing) * 2)
+  );
+  padding-inline: var(--layout-container-spacing);
+  margin-inline: auto;
+}

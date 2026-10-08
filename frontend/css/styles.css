@@ -1,0 +1,369 @@
+@import url(./reset.css);
+
+:root {
+  --ink: #1e2342;
+  --muted: #6b7190;
+  --blue: #3f5fe0;
+  --blue-soft: #e9efff;
+  --blue-btn: #b0bfee;
+  --violet: #7c4dde;
+  --violet-soft: #f1ebff;
+  --line: #e4e7f2;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  /* min-height: 100%; */
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(
+      520px 360px at 88% 30%,
+      rgba(196, 175, 250, 0.35),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #f5f7ff 0%, #f8f9ff 100%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+ul {
+  list-style: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.page {
+  /* max-width: 1000px;
+  min-height: 100vh; */
+  position: relative;
+  margin: 0 auto;
+  padding: 0 48px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4a63e8, #7a4ee0);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.brand-text strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.brand-text small {
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 11px;
+}
+.help-link {
+  color: var(--muted);
+}
+.help-link:hover {
+  color: var(--ink);
+}
+
+.support-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  font-weight: 500;
+  color: var(--ink);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(40, 50, 120, 0.08);
+}
+.support-btn svg {
+  color: var(--blue);
+}
+
+/* Hero */
+.hero {
+  /* flex: 1; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 40px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(40, 50, 120, 0.1);
+}
+.pill-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+h1 {
+  max-width: 420px;
+  margin-top: 18px;
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.lead {
+  margin-top: 18px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* Cards */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  width: 100%;
+  max-width: 650px;
+  margin-top: 28px;
+  text-align: left;
+}
+
+.card {
+  --accent: var(--blue);
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 6px 24px rgba(60, 70, 150, 0.09);
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--accent);
+}
+.card-admin {
+  --accent: var(--violet);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.icon-box {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--blue-soft);
+  border-radius: 10px;
+}
+.card-admin .icon-box {
+  background: var(--violet-soft);
+}
+
+.tag {
+  margin-top: 14px;
+  font-size: 6.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.card h2 {
+  margin-top: 22px;
+  font-size: 19px;
+  font-weight: 400;
+}
+
+.card-desc {
+  margin-top: 10px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.features {
+  margin-top: 14px;
+  display: grid;
+  gap: 6px;
+}
+.features li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9.5px;
+  color: var(--muted);
+}
+.features svg {
+  flex: none;
+  color: var(--accent);
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding: 0 14px;
+  height: 35px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: filter 0.15s ease;
+}
+.btn:hover {
+  filter: brightness(0.95);
+}
+
+.card-student .btn {
+  background: var(--blue-btn);
+  color: #2f48c0;
+}
+.card-student .btn svg {
+  color: #fff;
+}
+.card-admin .btn {
+  background: var(--violet-soft);
+  color: var(--violet);
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 22px;
+  font-size: 9px;
+  color: var(--muted);
+}
+.note a {
+  color: var(--blue);
+  font-weight: 600;
+}
+.note a:hover {
+  text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 65px;
+  padding: 22px 0 26px;
+  border-top: 1px solid var(--line);
+  font-size: 8.5px;
+  color: var(--muted);
+}
+.secure {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.footer-links {
+  display: flex;
+  gap: 18px;
+}
+.footer-links a:hover {
+  color: var(--ink);
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .page {
+    padding: 0 20px;
+  }
+  .header-nav .help-link {
+    display: none;
+  }
+  h1 {
+    font-size: 28px;
+  }
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  .footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+}
+
+/* Larger screens: scale up the compact type */
+@media (min-width: 1100px) {
+  html {
+    font-size: 112.5%;
+  }
+}
