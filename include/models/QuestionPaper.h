@@ -2,25 +2,24 @@
 #define QUESTIONPAPER_H
 
 #include <string>
-using namespace std;
 
 class QuestionPaper {
 private:
     int paperId;
     int examId;
-    string subject;
+    std::string subject;
     int totalMarks;
 
 public:
     QuestionPaper(int paperId, int examId,
-                  string subject, int totalMarks);
+                  const std::string& subject, int totalMarks);
 
-    void displayPaper();
+    void displayPaper() const;
 
-    int getPaperId();
-    int getExamId();
-    string getSubject();
-    int getTotalMarks();
+    int getPaperId() const;
+    int getExamId() const;
+    std::string getSubject() const;
+    int getTotalMarks() const;
 };
 
 #endif

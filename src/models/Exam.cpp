@@ -3,32 +3,30 @@
 
 using namespace std;
 
-Exam::Exam(int id, string title, int duration, int totalQuestions) {
-    this->examId = id;
-    this->title = title;
-    this->duration = duration;
-    this->totalQuestions = totalQuestions;
+Exam::Exam(int id, const string& title, int duration, int totalQuestions)
+    : examId(id), title(title), duration(duration),
+      totalQuestions(totalQuestions) {
 }
 
-void Exam::displayExam() {
+void Exam::displayExam() const {
     cout << "Exam ID: " << examId << endl;
     cout << "Title: " << title << endl;
     cout << "Duration: " << duration << " minutes" << endl;
     cout << "Total Questions: " << totalQuestions << endl;
 }
 
-int Exam::getExamId() {
+int Exam::getExamId() const {
     return examId;
 }
 
-string Exam::getTitle() {
+string Exam::getTitle() const {
     return title;
 }
 
-int Exam::getDuration() {
+int Exam::getDuration() const {
     return duration;
 }
 
-int Exam::getTotalQuestions() {
+int Exam::getTotalQuestions() const {
     return totalQuestions;
 }
