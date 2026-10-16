@@ -1,2 +1,0 @@
-101,Test Student,testuser,CSE,2
-101,Kaushika,kaushika,d091bb5c22ae9ef6e7e1faeed5c31f79$2482bf2acc017bf5a90580ed81c1e72e9fd8041f8617f9f9553b3ceb38ab3d25,CSE,2
