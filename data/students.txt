@@ -1,4 +1,1 @@
-101
-101,Kaushika,kaushika,CSE,2
-101,Kaushika,kaushika,CSE,2
-101,Kaushika,kaushika,CSE,2
+101,Test Student,testuser,CSE,2
