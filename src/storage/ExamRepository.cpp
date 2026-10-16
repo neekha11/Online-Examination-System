@@ -57,15 +57,17 @@ vector<Exam> ExamRepository::loadAll(const string& filename) const {
 }
 
 bool ExamRepository::exists(int examId, const string& filename) const {
-    return findById(examId, filename).has_value();
+    return findById(examId, filename) != nullptr;
 }
 
-optional<Exam> ExamRepository::findById(int examId, const string& filename) const {
-    for (const Exam& e : loadAll(filename)) {
-        if (e.getExamId() == examId)
-            return e;
+unique_ptr<Exam> ExamRepository::findById(int examId, const string& filename) const {
+    const vector<Exam> exams = loadAll(filename);
+
+    for (size_t i = 0; i < exams.size(); ++i) {
+        if (exams[i].getExamId() == examId)
+            return unique_ptr<Exam>(new Exam(exams[i]));
     }
-    return nullopt;
+    return unique_ptr<Exam>();
 }
 
 bool ExamRepository::saveExam(const Exam& exam, const string& filename) const {

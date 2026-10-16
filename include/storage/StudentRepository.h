@@ -2,7 +2,7 @@
 #define STUDENTREPOSITORY_H
 
 #include "../models/Student.h"
-#include <optional>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -15,8 +15,9 @@ public:
     bool saveStudent(const Student& student, const std::string& filename) const;
 
     bool existsById(int id, const std::string& filename) const;
-    std::optional<Student> findByUsername(const std::string& username,
-                                          const std::string& filename) const;
+    // Returns the student, or a null pointer if not found.
+    std::unique_ptr<Student> findByUsername(const std::string& username,
+                                            const std::string& filename) const;
     std::vector<Student> loadAll(const std::string& filename) const;
 };
 

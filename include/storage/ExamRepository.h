@@ -2,7 +2,7 @@
 #define EXAMREPOSITORY_H
 
 #include "../models/Exam.h"
-#include <optional>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -15,7 +15,8 @@ public:
     bool saveExam(const Exam& exam, const std::string& filename) const;
 
     bool exists(int examId, const std::string& filename) const;
-    std::optional<Exam> findById(int examId, const std::string& filename) const;
+    // Returns the exam, or a null pointer if not found.
+    std::unique_ptr<Exam> findById(int examId, const std::string& filename) const;
     std::vector<Exam> loadAll(const std::string& filename) const;
 };
 

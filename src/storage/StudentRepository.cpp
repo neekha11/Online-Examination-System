@@ -68,13 +68,15 @@ bool StudentRepository::existsById(int id, const string& filename) const {
     return false;
 }
 
-optional<Student> StudentRepository::findByUsername(const string& username,
-                                                    const string& filename) const {
-    for (const Student& s : loadAll(filename)) {
-        if (s.getUsername() == username)
-            return s;
+unique_ptr<Student> StudentRepository::findByUsername(const string& username,
+                                                      const string& filename) const {
+    const vector<Student> students = loadAll(filename);
+
+    for (size_t i = 0; i < students.size(); ++i) {
+        if (students[i].getUsername() == username)
+            return unique_ptr<Student>(new Student(students[i]));
     }
-    return nullopt;
+    return unique_ptr<Student>();
 }
 
 bool StudentRepository::saveStudent(const Student& student,
