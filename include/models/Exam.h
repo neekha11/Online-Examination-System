@@ -2,24 +2,23 @@
 #define EXAM_H
 
 #include <string>
-using namespace std;
 
 class Exam {
 private:
     int examId;
-    string title;
-    int duration;
+    std::string title;
+    int duration;          // minutes
     int totalQuestions;
 
 public:
-    Exam(int id, string title, int duration, int totalQuestions);
+    Exam(int id, const std::string& title, int duration, int totalQuestions);
 
-    void displayExam();
+    void displayExam() const;
 
-    int getExamId();
-    string getTitle();
-    int getDuration();
-    int getTotalQuestions();
+    int getExamId() const;
+    std::string getTitle() const;
+    int getDuration() const;
+    int getTotalQuestions() const;
 };
 
 #endif
