@@ -2,12 +2,22 @@
 #define EXAMREPOSITORY_H
 
 #include "../models/Exam.h"
+#include <memory>
 #include <string>
-using namespace std;
+#include <vector>
 
+// File format (one exam per line):
+//   id,title,durationMinutes,totalQuestions
 class ExamRepository {
 public:
-    void saveExam(Exam exam, string filename);
+    // Returns false if the data is invalid, the id already exists,
+    // or the file cannot be written.
+    bool saveExam(const Exam& exam, const std::string& filename) const;
+
+    bool exists(int examId, const std::string& filename) const;
+    // Returns the exam, or a null pointer if not found.
+    std::unique_ptr<Exam> findById(int examId, const std::string& filename) const;
+    std::vector<Exam> loadAll(const std::string& filename) const;
 };
 
 #endif

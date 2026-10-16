@@ -3,10 +3,11 @@
 
 using namespace std;
 
-Admin::Admin(int id, string name, string username, string password)
+Admin::Admin(int id, const string& name,
+             const string& username, const string& password)
     : User(id, name, username, password) {
 }
 
-void Admin::displayRole() {
+void Admin::displayRole() const {
     cout << "Role: Admin" << endl;
 }
