@@ -1,22 +1,22 @@
 #include "../../include/models/Student.h"
 #include <iostream>
+
 using namespace std;
 
-Student::Student(int id, string name, string username,
-                 string password, string department, int year)
-    : User(id, name, username, password) {
-
-    this->department = department;
-    this->year = year;
+Student::Student(int id, const string& name, const string& username,
+                 const string& password, const string& department, int year)
+    : User(id, name, username, password),
+      department(department), year(year) {
 }
 
-void Student::displayRole() {
+void Student::displayRole() const {
     cout << "Role: Student" << endl;
 }
-string Student::getDepartment() {
+
+string Student::getDepartment() const {
     return department;
 }
 
-int Student::getYear() {
+int Student::getYear() const {
     return year;
 }
