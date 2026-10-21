@@ -19,3 +19,14 @@
 208,102,TF,1,TRUE,An array gives constant-time access to an element by its index.
 209,102,TF,1,FALSE,A stack allows insertion and removal from both ends.
 210,102,TF,1,TRUE,A hash table can offer average constant-time lookups.
+
+301,103,MCQ,1,B,Which layer of the OSI model handles routing?,Data Link,Network,Transport,Session
+302,103,MCQ,1,A,What does HTTP stand for?,HyperText Transfer Protocol,High Transfer Text Protocol,HyperText Transmission Process,Host Transfer Ticket Protocol
+303,103,MCQ,1,C,Which protocol is used to send email?,FTP,HTTP,SMTP,SSH
+304,103,MCQ,1,D,Which device connects different networks together?,Hub,Switch,Repeater,Router
+305,103,MCQ,1,B,How many bits are in an IPv4 address?,16,32,64,128
+306,103,MCQ,1,A,Which protocol translates domain names into IP addresses?,DNS,DHCP,ARP,ICMP
+307,103,MCQ,1,C,Which port does HTTPS use by default?,21,80,443,25
+308,103,TF,1,TRUE,TCP provides reliable delivery of data.
+309,103,TF,1,FALSE,UDP guarantees that packets arrive in order.
+310,103,TF,1,TRUE,A MAC address identifies a network interface at the data link layer.
