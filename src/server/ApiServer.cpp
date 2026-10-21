@@ -12,6 +12,7 @@
 #include "../../include/storage/ResultRepository.h"
 #include "../../include/storage/StudentRepository.h"
 #include "../../include/utils/StringUtils.h"
+#include "../../include/utils/Validator.h"
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -297,6 +298,127 @@ int runApiServer(int port, const string& webRoot) {
         }
         reply(res, 200, "{\"late\":" + string(late ? "true" : "false") + ",\"result\":" +
                         resultJson(r, exam->getTitle()) + ",\"review\":" + review + "]}");
+    });
+
+    // ---------- admin: exams, questions, results ----------
+    svr.Get("/api/admin/exams", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "admin", s)) return;
+
+        const vector<Exam> exams = ExamRepository().loadAll(EXAM_FILE);
+        const vector<Result> results = ResultRepository().loadAll(RESULT_FILE);
+        QuestionService service(QUESTION_FILE);
+
+        string o = "{\"students\":" + to_string(StudentRepository().loadAll(STUDENT_FILE).size()) +
+                   ",\"attempts\":" + to_string(results.size()) + ",\"exams\":[";
+        for (size_t i = 0; i < exams.size(); ++i) {
+            const vector<unique_ptr<Question> > qs = service.getQuestions(exams[i].getExamId());
+            int taken = 0;
+            for (size_t j = 0; j < results.size(); ++j)
+                if (results[j].getExamId() == exams[i].getExamId()) ++taken;
+            o += string(i ? "," : "") + "{\"id\":" + to_string(exams[i].getExamId()) + ",\"title\":" + js(exams[i].getTitle()) +
+                 ",\"duration\":" + to_string(exams[i].getDuration()) + ",\"planned\":" + to_string(exams[i].getTotalQuestions()) +
+                 ",\"questions\":" + to_string(qs.size()) + ",\"totalMarks\":" + to_string(QuestionService::totalMarks(qs)) +
+                 ",\"attempts\":" + to_string(taken) + "}";
+        }
+        reply(res, 200, o + "]}");
+    });
+
+    svr.Post("/api/admin/exams", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "admin", s)) return;
+
+        const string title = req.get_param_value("title");
+        const int duration = atoi(req.get_param_value("duration").c_str());
+        const int planned = atoi(req.get_param_value("planned").c_str());
+        if (!Validator::isValidText(title, 100)) return fail(res, 400, "Title must be 1-100 characters and cannot contain commas.");
+        if (!Validator::isValidDuration(duration)) return fail(res, 400, "Duration must be between 1 and 600 minutes.");
+        if (planned < 1 || planned > 200) return fail(res, 400, "Planned questions must be between 1 and 200.");
+
+        ExamRepository repo;
+        const vector<Exam> all = repo.loadAll(EXAM_FILE);
+        int id = 1;
+        for (size_t i = 0; i < all.size(); ++i)
+            id = max(id, all[i].getExamId() + 1);
+        if (!repo.saveExam(Exam(id, title, duration, planned), EXAM_FILE))
+            return fail(res, 500, "The exam could not be saved.");
+        reply(res, 200, "{\"id\":" + to_string(id) + "}");
+    });
+
+    svr.Get(R"(/api/admin/exams/(\d+)/questions)", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "admin", s)) return;
+
+        QuestionService service(QUESTION_FILE);
+        const vector<unique_ptr<Question> > qs = service.getQuestions(stoi(req.matches[1]));
+        string o = "[";
+        for (size_t i = 0; i < qs.size(); ++i)
+            o += string(i ? "," : "") + "{\"question\":" + questionJson(*qs[i]) + ",\"correctAnswer\":" + js(qs[i]->getCorrectAnswer()) + "}";
+        reply(res, 200, o + "]");
+    });
+
+    svr.Post("/api/admin/questions", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "admin", s)) return;
+
+        const int examId = atoi(req.get_param_value("examId").c_str());
+        if (!ExamRepository().findById(examId, EXAM_FILE)) return fail(res, 404, "Exam not found.");
+
+        QuestionService service(QUESTION_FILE);
+        const string type = req.get_param_value("type"), text = req.get_param_value("text"),
+                     correct = StringUtils::toUpper(req.get_param_value("correct"));
+        const int marks = atoi(req.get_param_value("marks").c_str());
+        string error;
+        bool ok = false;
+
+        if (type == "MCQ") {
+            vector<string> options;
+            options.push_back(req.get_param_value("a")); options.push_back(req.get_param_value("b"));
+            options.push_back(req.get_param_value("c")); options.push_back(req.get_param_value("d"));
+            ok = service.addMCQ(examId, text, marks, options, correct.empty() ? 'X' : correct[0], error);
+        } else if (type == "TF") {
+            if (correct != "TRUE" && correct != "FALSE") return fail(res, 400, "Choose True or False as the correct answer.");
+            ok = service.addTrueFalse(examId, text, marks, correct == "TRUE", error);
+        } else {
+            return fail(res, 400, "Unknown question type.");
+        }
+        if (!ok) return fail(res, 400, error);
+        reply(res, 200, "{\"ok\":true}");
+    });
+
+    svr.Delete(R"(/api/admin/questions/(\d+))", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "admin", s)) return;
+
+        string error;
+        if (!QuestionService(QUESTION_FILE).removeQuestion(stoi(req.matches[1]), error)) return fail(res, 404, error);
+        reply(res, 200, "{\"ok\":true}");
+    });
+
+    svr.Get(R"(/api/admin/exams/(\d+)/results)", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "admin", s)) return;
+
+        const int examId = stoi(req.matches[1]);
+        const vector<Result> list = ResultRepository().findByExam(examId, RESULT_FILE);
+        const vector<Student> students = StudentRepository().loadAll(STUDENT_FILE);
+        const string title = titleOf(examId);
+
+        string o = "[";
+        for (size_t i = 0; i < list.size(); ++i) {
+            string name = "(unknown)";
+            for (size_t j = 0; j < students.size(); ++j)
+                if (students[j].getId() == list[i].getStudentId()) name = students[j].getName();
+            o += string(i ? "," : "") + "{\"studentId\":" + to_string(list[i].getStudentId()) + ",\"studentName\":" + js(name) +
+                 ",\"result\":" + resultJson(list[i], title) + "}";
+        }
+        reply(res, 200, o + "]");
     });
 
     // ---------- static frontend ----------

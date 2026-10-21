@@ -34,7 +34,11 @@
 
   $(".dash-title p").textContent = available.length
     ? `You have ${available.length} examination${available.length === 1 ? "" : "s"} ready to take.`
-    : "No examinations are waiting for you right now.";
+    : results.length ? "You're all caught up. New exams will appear here." : "No examinations are available yet.";
+  const heads = document.querySelectorAll(".panel-head h2");
+  heads[0].textContent = "Your examinations";
+  const viewAll = document.querySelectorAll(".panel-head a");
+  viewAll.forEach((a) => a.remove());
 
   const stats = document.querySelectorAll(".stat");
   const setStat = (i, label, value, note) => {
@@ -58,7 +62,7 @@
             <p>${e.duration} minutes · ${e.questions} question${e.questions === 1 ? "" : "s"}</p></div>
           ${action}</div>`;
       }).join("")
-    : `<p class="muted" style="font-size:11px;color:var(--muted)">No examinations have been created yet.</p>`;
+    : `<div class="empty"><b>No examinations yet</b>Check back soon.</div>`;
 
   // Results table
   $("tbody").innerHTML = results.length
@@ -67,7 +71,7 @@
         <td class="muted">${Api.esc(r.submittedAt)}</td>
         <td>${r.score}/${r.totalMarks} (${r.percentage}%)</td>
         <td><span class="chip ${r.passed ? "pass" : "draft"}">${r.passed ? "Passed" : "Failed"}</span></td></tr>`).join("")
-    : `<tr><td colspan="4" class="muted">You have not taken any exams yet.</td></tr>`;
+    : `<tr><td colspan="4"><div class="empty"><b>No results yet</b>Your scores will appear here after your first exam.</div></td></tr>`;
 
   // Progress bars (replaces the sample subjects)
   const bars = $(".bars");
@@ -76,6 +80,10 @@
     bars.innerHTML = results.length
       ? results.map((r) => `<div><div class="bar-label"><span>${Api.esc(r.examTitle)}</span><span>${Math.round(r.percentage)}%</span></div>
           <div class="bar"><i style="width:${r.percentage}%"></i></div></div>`).join("")
-      : `<p style="font-size:10.5px;color:var(--muted)">Scores appear here after your first exam.</p>`;
+      : `<div class="empty">Scores appear here after your first exam.</div>`;
   }
+  const tips = document.querySelector(".instructions");
+  if (tips) tips.innerHTML = `<li><b>One attempt per exam.</b> Your result is saved when you submit.</li>
+    <li><b>The timer runs on the server.</b> Closing the page will not pause it.</li>
+    <li><b>Pass mark is 40%.</b> Unanswered questions score zero.</li>`;
 })();

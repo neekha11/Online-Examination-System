@@ -1,1 +1,15 @@
 101,C++ OOP Exam,30,10
+=== Add this line to data/exams.txt (use another ID if 102 already exists) ===
+102,Data Structures Basics,20,10
+
+=== Add these lines to the end of data/questions.txt ===
+201,102,MCQ,1,B,Which data structure follows the LIFO principle?,Queue,Stack,Array,Tree
+202,102,MCQ,1,A,Which data structure follows the FIFO principle?,Queue,Stack,Heap,Graph
+203,102,MCQ,1,C,What is the time complexity of binary search on a sorted array?,O(n),O(n log n),O(log n),O(1)
+204,102,MCQ,1,D,Which structure is best for representing hierarchical data?,Array,Queue,Stack,Tree
+205,102,MCQ,1,B,What does a linked list node store besides its data?,Its index,A pointer to the next node,Its size,A hash key
+206,102,MCQ,1,A,Which tree traversal visits the root node first?,Preorder,Inorder,Postorder,Reverse order
+207,102,MCQ,1,C,Which sorting algorithm has O(n^2) worst-case time?,Merge sort,Heap sort,Bubble sort,Counting sort
+208,102,TF,1,TRUE,An array gives constant-time access to an element by its index.
+209,102,TF,1,FALSE,A stack allows insertion and removal from both ends.
+210,102,TF,1,TRUE,A hash table can offer average constant-time lookups.
