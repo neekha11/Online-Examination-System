@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Examination – ExamEra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/dashboard.css" />
+    <link rel="stylesheet" href="./css/exam.css" />
+  </head>
+  <body class="dash student-theme">
+    <div class="page">
+      <header class="header exam-bar">
+        <a class="brand" href="student-dashboard.html">
+          <span class="brand-logo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z" /><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" /></svg>
+          </span>
+          <span class="brand-text"><strong>ExamEra</strong><small>ONLINE EXAMINATION</small></span>
+        </a>
+        <nav class="header-nav"><span class="timer" id="timer" hidden>--:--</span></nav>
+      </header>
+
+      <main class="exam-main" id="view"><p class="exam-meta">Loading…</p></main>
+
+      <footer class="footer">
+        <span>© 2026 Examora. All rights reserved.</span>
+        <span class="secure">Secure access. Confident assessment.</span>
+        <span class="footer-links"><a href="student-dashboard.html">Back to dashboard</a></span>
+      </footer>
+    </div>
+    <script src="./js/api.js"></script>
+    <script src="./js/exam.js"></script>
+  </body>
+</html>

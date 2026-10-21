@@ -1,12 +1,17 @@
 CXX      = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra -I.
-SRC      = main.cpp $(wildcard src/*/*.cpp)
-OUT      = exam
+LIBSRC   = $(wildcard src/models/*.cpp src/storage/*.cpp src/services/*.cpp src/utils/*.cpp)
+ifeq ($(OS),Windows_NT)
+  NETLIBS = -lws2_32
+endif
 
-all: $(OUT)
+all: exam server
 
-$(OUT): $(SRC)
-	$(CXX) $(CXXFLAGS) $(SRC) -o $(OUT)
+exam: main.cpp $(LIBSRC)
+	$(CXX) $(CXXFLAGS) main.cpp $(LIBSRC) -o exam
+
+server: server_main.cpp src/server/ApiServer.cpp $(LIBSRC)
+	$(CXX) $(CXXFLAGS) -pthread server_main.cpp src/server/ApiServer.cpp $(LIBSRC) -o server $(NETLIBS)
 
 clean:
-	rm -f $(OUT) $(OUT).exe
+	rm -f exam server exam.exe server.exe

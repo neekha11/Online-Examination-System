@@ -21,6 +21,7 @@ public:
     std::string answerPrompt() const override;
     void display(int number) const override;
     std::string serialize() const override;
+    std::vector<std::string> getOptions() const override;
 };
 
 #endif

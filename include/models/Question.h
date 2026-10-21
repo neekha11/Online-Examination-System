@@ -2,6 +2,7 @@
 #define QUESTION_H
 
 #include <string>
+#include <vector>
 
 // Abstract base class for every question type (MCQ, True/False, ...).
 class Question {
@@ -30,6 +31,7 @@ public:
     virtual std::string answerPrompt() const = 0;
     virtual void display(int number) const = 0;
     virtual std::string serialize() const = 0;        // one line for questions.txt
+    virtual std::vector<std::string> getOptions() const { return std::vector<std::string>(); }
 
     bool isCorrect(const std::string& answer) const;
 };

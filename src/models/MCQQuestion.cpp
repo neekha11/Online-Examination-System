@@ -34,3 +34,7 @@ string MCQQuestion::serialize() const {
         line += "," + options[i];
     return line;
 }
+
+vector<string> MCQQuestion::getOptions() const {
+    return options;
+}

@@ -1,0 +1,314 @@
+#ifdef _WIN32
+#define _WIN32_WINNT 0x0A00
+#endif
+#include "../../include/third_party/httplib.h"
+#include "../../include/server/ApiServer.h"
+#include "../../include/models/Admin.h"
+#include "../../include/models/AnswerSheet.h"
+#include "../../include/services/AuthService.h"
+#include "../../include/services/EvaluationService.h"
+#include "../../include/services/QuestionService.h"
+#include "../../include/storage/ExamRepository.h"
+#include "../../include/storage/ResultRepository.h"
+#include "../../include/storage/StudentRepository.h"
+#include "../../include/utils/StringUtils.h"
+#include <chrono>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <mutex>
+#include <random>
+#include <sstream>
+
+using namespace std;
+using httplib::Request;
+using httplib::Response;
+using httplib::Server;
+
+namespace {
+
+const string STUDENT_FILE = "data/students.txt";
+const string EXAM_FILE = "data/exams.txt";
+const string QUESTION_FILE = "data/questions.txt";
+const string RESULT_FILE = "data/results.txt";
+const int GRACE_SECONDS = 15;           // allowance for network delay on submit
+
+struct Session {
+    string role;                        // "student" or "admin"
+    int studentId;
+    string name;
+};
+
+mutex mu;                               // one request at a time: the data files are plain text
+map<string, Session> sessions;
+map<pair<int, int>, long long> attempts; // (studentId, examId) -> start time (seconds)
+
+long long nowSec() {
+    return chrono::duration_cast<chrono::seconds>(
+               chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+string js(const string& s) {            // JSON string literal
+    string o = "\"";
+    for (size_t i = 0; i < s.size(); ++i) {
+        const char c = s[i];
+        if (c == '"') o += "\\\"";
+        else if (c == '\\') o += "\\\\";
+        else if (c == '\n') o += "\\n";
+        else if (static_cast<unsigned char>(c) >= 32) o += c;
+    }
+    return o + "\"";
+}
+
+string pct(double v) {
+    ostringstream o;
+    o << fixed << setprecision(1) << v;
+    return o.str();
+}
+
+void reply(Response& res, int status, const string& body) {
+    res.status = status;
+    res.set_content(body, "application/json");
+}
+void fail(Response& res, int status, const string& message) {
+    reply(res, status, "{\"error\":" + js(message) + "}");
+}
+
+string newToken() {
+    static mt19937_64 rng((random_device()()));
+    ostringstream o;
+    o << hex << rng() << rng() << rng();
+    return o.str();
+}
+
+bool requireRole(const Request& req, Response& res, const string& role, Session& out) {
+    const string header = req.get_header_value("Authorization");
+    const string token = header.rfind("Bearer ", 0) == 0 ? header.substr(7) : "";
+    map<string, Session>::const_iterator it = sessions.find(token);
+
+    if (it == sessions.end() || it->second.role != role) {
+        fail(res, 401, "Please sign in again.");
+        return false;
+    }
+    out = it->second;
+    return true;
+}
+
+string questionJson(const Question& q) {
+    string o = "{\"id\":" + to_string(q.getId()) + ",\"type\":" + js(q.getType()) +
+               ",\"text\":" + js(q.getText()) + ",\"marks\":" + to_string(q.getMarks()) +
+               ",\"options\":[";
+    const vector<string> options = q.getOptions();
+    for (size_t i = 0; i < options.size(); ++i)
+        o += (i ? "," : "") + js(options[i]);
+    return o + "]}";
+}
+
+string resultJson(const Result& r, const string& title) {
+    return "{\"examId\":" + to_string(r.getExamId()) + ",\"examTitle\":" + js(title) +
+           ",\"score\":" + to_string(r.getScore()) + ",\"totalMarks\":" + to_string(r.getTotalMarks()) +
+           ",\"percentage\":" + pct(r.getPercentage()) + ",\"grade\":" + js(r.getGrade()) +
+           ",\"passed\":" + (r.isPassed() ? "true" : "false") +
+           ",\"correct\":" + to_string(r.getCorrectCount()) + ",\"attempted\":" + to_string(r.getAttempted()) +
+           ",\"totalQuestions\":" + to_string(r.getTotalQuestions()) +
+           ",\"submittedAt\":" + js(r.getSubmittedAt()) + "}";
+}
+
+string titleOf(int examId) {
+    ExamRepository repo;
+    unique_ptr<Exam> e = repo.findById(examId, EXAM_FILE);
+    return e ? e->getTitle() : "(deleted exam)";
+}
+
+Result finish(int studentId, const Exam& exam, const vector<unique_ptr<Question> >& questions,
+              const AnswerSheet& sheet) {
+    EvaluationService evaluator;
+    const Result r = evaluator.evaluate(studentId, exam, questions, sheet);
+    ResultRepository().saveResult(r, RESULT_FILE);
+    return r;
+}
+
+} // namespace
+
+int runApiServer(int port, const string& webRoot) {
+    Server svr;
+    AuthService auth(STUDENT_FILE);
+    Admin admin(1, "Administrator", "admin", "Admin@123");   // same demo admin as the console app
+
+    // ---------- sign in / out ----------
+    svr.Post("/api/student/login", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        unique_ptr<Student> s = auth.loginStudent(req.get_param_value("username"),
+                                                  req.get_param_value("password"));
+        if (!s) return fail(res, 401, "Wrong username or password.");
+
+        const string token = newToken();
+        Session session = {"student", s->getId(), s->getName()};
+        sessions[token] = session;
+        reply(res, 200, "{\"token\":" + js(token) + ",\"student\":{\"id\":" + to_string(s->getId()) +
+                        ",\"name\":" + js(s->getName()) + ",\"department\":" + js(s->getDepartment()) +
+                        ",\"year\":" + to_string(s->getYear()) + "}}");
+    });
+
+    svr.Post("/api/admin/login", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        if (!auth.authenticate(&admin, req.get_param_value("username"), req.get_param_value("password")))
+            return fail(res, 401, "Wrong username or password.");
+
+        const string token = newToken();
+        Session session = {"admin", 0, admin.getName()};
+        sessions[token] = session;
+        reply(res, 200, "{\"token\":" + js(token) + ",\"admin\":{\"name\":" + js(admin.getName()) + "}}");
+    });
+
+    svr.Post("/api/logout", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        const string header = req.get_header_value("Authorization");
+        if (header.rfind("Bearer ", 0) == 0)
+            sessions.erase(header.substr(7));
+        reply(res, 200, "{\"ok\":true}");
+    });
+
+    svr.Post("/api/student/register", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        const vector<Student> all = StudentRepository().loadAll(STUDENT_FILE);
+        int id = 1;
+        for (size_t i = 0; i < all.size(); ++i)
+            id = max(id, all[i].getId() + 1);
+
+        string error;
+        if (!auth.registerStudent(id, req.get_param_value("name"), req.get_param_value("username"),
+                                  req.get_param_value("password"), req.get_param_value("department"),
+                                  atoi(req.get_param_value("year").c_str()), error))
+            return fail(res, 400, error);
+        reply(res, 200, "{\"ok\":true,\"id\":" + to_string(id) + "}");
+    });
+
+    // ---------- student: exams and results ----------
+    svr.Get("/api/exams", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "student", s)) return;
+
+        const vector<Exam> exams = ExamRepository().loadAll(EXAM_FILE);
+        QuestionService questions(QUESTION_FILE);
+        ResultRepository results;
+
+        string o = "[";
+        for (size_t i = 0; i < exams.size(); ++i) {
+            const Exam& e = exams[i];
+            const bool done = results.hasAttempted(s.studentId, e.getExamId(), RESULT_FILE);
+            const bool running = attempts.count(make_pair(s.studentId, e.getExamId())) > 0;
+            o += string(i ? "," : "") + "{\"id\":" + to_string(e.getExamId()) + ",\"title\":" + js(e.getTitle()) +
+                 ",\"duration\":" + to_string(e.getDuration()) +
+                 ",\"questions\":" + to_string(questions.getQuestions(e.getExamId()).size()) +
+                 ",\"attempted\":" + (done ? "true" : "false") +
+                 ",\"inProgress\":" + (running && !done ? "true" : "false") + "}";
+        }
+        reply(res, 200, o + "]");
+    });
+
+    svr.Get("/api/student/results", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "student", s)) return;
+
+        const vector<Result> list = ResultRepository().findByStudent(s.studentId, RESULT_FILE);
+        string o = "[";
+        for (size_t i = 0; i < list.size(); ++i)
+            o += (i ? "," : "") + resultJson(list[i], titleOf(list[i].getExamId()));
+        reply(res, 200, o + "]");
+    });
+
+    // ---------- student: take an exam ----------
+    svr.Post(R"(/api/exams/(\d+)/start)", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "student", s)) return;
+
+        const int examId = stoi(req.matches[1]);
+        unique_ptr<Exam> exam = ExamRepository().findById(examId, EXAM_FILE);
+        if (!exam) return fail(res, 404, "Exam not found.");
+        if (ResultRepository().hasAttempted(s.studentId, examId, RESULT_FILE))
+            return fail(res, 409, "You have already attempted this exam.");
+
+        QuestionService service(QUESTION_FILE);
+        vector<unique_ptr<Question> > questions = service.getQuestions(examId);
+        if (questions.empty()) return fail(res, 400, "No questions have been added to this exam yet.");
+
+        const pair<int, int> key(s.studentId, examId);
+        if (!attempts.count(key)) attempts[key] = nowSec();     // a second call resumes the same attempt
+
+        const long long left = exam->getDuration() * 60LL - (nowSec() - attempts[key]);
+        if (left <= 0) {                                         // time ran out while away
+            finish(s.studentId, *exam, questions, AnswerSheet());
+            attempts.erase(key);
+            return fail(res, 409, "Your time for this exam has ended. It was submitted with no answers.");
+        }
+
+        string o = "{\"exam\":{\"id\":" + to_string(examId) + ",\"title\":" + js(exam->getTitle()) +
+                   ",\"duration\":" + to_string(exam->getDuration()) + "},\"secondsLeft\":" + to_string(left) +
+                   ",\"questions\":[";
+        for (size_t i = 0; i < questions.size(); ++i)
+            o += (i ? "," : "") + questionJson(*questions[i]);
+        reply(res, 200, o + "]}");
+    });
+
+    // answers = "questionId:ANSWER,questionId:ANSWER"   e.g. "1:B,2:C,8:TRUE"
+    svr.Post(R"(/api/exams/(\d+)/submit)", [&](const Request& req, Response& res) {
+        lock_guard<mutex> lock(mu);
+        Session s;
+        if (!requireRole(req, res, "student", s)) return;
+
+        const int examId = stoi(req.matches[1]);
+        const pair<int, int> key(s.studentId, examId);
+        unique_ptr<Exam> exam = ExamRepository().findById(examId, EXAM_FILE);
+        if (!exam || !attempts.count(key)) return fail(res, 400, "This exam is not in progress.");
+
+        QuestionService service(QUESTION_FILE);
+        vector<unique_ptr<Question> > questions = service.getQuestions(examId);
+
+        const bool late = nowSec() - attempts[key] > exam->getDuration() * 60LL + GRACE_SECONDS;
+        AnswerSheet sheet;
+        if (!late) {
+            const vector<string> pairs = StringUtils::split(req.get_param_value("answers"));
+            for (size_t i = 0; i < pairs.size(); ++i) {
+                const vector<string> kv = StringUtils::split(pairs[i], ':');
+                if (kv.size() != 2) continue;
+                for (size_t j = 0; j < questions.size(); ++j) {
+                    if (to_string(questions[j]->getId()) == kv[0]) {
+                        sheet.setAnswer(questions[j]->getId(), questions[j]->normalizeAnswer(kv[1]));
+                        break;
+                    }
+                }
+            }
+        }
+
+        const Result r = finish(s.studentId, *exam, questions, sheet);
+        attempts.erase(key);
+
+        string review = "[";
+        for (size_t i = 0; i < questions.size(); ++i) {
+            const Question& q = *questions[i];
+            const string mine = sheet.getAnswer(q.getId());
+            review += string(i ? "," : "") + "{\"question\":" + questionJson(q) + ",\"yourAnswer\":" + js(mine) +
+                      ",\"correctAnswer\":" + js(q.getCorrectAnswer()) +
+                      ",\"isCorrect\":" + (!mine.empty() && q.isCorrect(mine) ? "true" : "false") + "}";
+        }
+        reply(res, 200, "{\"late\":" + string(late ? "true" : "false") + ",\"result\":" +
+                        resultJson(r, exam->getTitle()) + ",\"review\":" + review + "]}");
+    });
+
+    // ---------- static frontend ----------
+    if (!svr.set_mount_point("/", webRoot)) {
+        cerr << "Could not find the '" << webRoot << "' folder. Run the server from the project root." << endl;
+        return 1;
+    }
+
+    cout << "ExamEra server running at http://localhost:" << port << "  (Ctrl+C to stop)" << endl;
+    if (!svr.listen("127.0.0.1", port)) {
+        cerr << "Could not start on port " << port << " (is it already in use?)." << endl;
+        return 1;
+    }
+    return 0;
+}

@@ -29,17 +29,20 @@
     toggle.setAttribute("aria-label", show ? "Hide password" : "Show password");
   });
 
-  // TODO: replace this stub once the C++ backend exposes an HTTP API.
-  // Example of what the real call will look like:
-  //   const res = await fetch(`${API_BASE_URL}/api/login`, {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ role, username, password }),
-  //   });
-  //   const data = await res.json();
-  //   return { ok: res.ok, message: data.message, redirect: `${role}-dashboard.html` };
+  // Sends the credentials to the C++ server and stores the session token.
   async function submitLogin(role, username, password) {
-    return { ok: false, message: "Login is not connected to the server yet." };
+    const res = await fetch(`/api/${role}/login`, {
+      method: "POST",
+      body: new URLSearchParams({ username, password }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, message: data.error || "Login failed." };
+
+    sessionStorage.setItem(
+      "examera_session",
+      JSON.stringify({ token: data.token, role, user: data.student || data.admin }),
+    );
+    return { ok: true, redirect: `${role}-dashboard.html` };
   }
 
   form.addEventListener("submit", async (e) => {
