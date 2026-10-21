@@ -1,0 +1,7 @@
+# Compiled binaries
+*.exe
+*.o
+/exam
+
+# Build output
+build/

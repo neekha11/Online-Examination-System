@@ -4,32 +4,30 @@
 using namespace std;
 
 QuestionPaper::QuestionPaper(int paperId, int examId,
-                             string subject, int totalMarks) {
-    this->paperId = paperId;
-    this->examId = examId;
-    this->subject = subject;
-    this->totalMarks = totalMarks;
+                             const string& subject, int totalMarks)
+    : paperId(paperId), examId(examId),
+      subject(subject), totalMarks(totalMarks) {
 }
 
-void QuestionPaper::displayPaper() {
+void QuestionPaper::displayPaper() const {
     cout << "Paper ID: " << paperId << endl;
     cout << "Exam ID: " << examId << endl;
     cout << "Subject: " << subject << endl;
     cout << "Total Marks: " << totalMarks << endl;
 }
 
-int QuestionPaper::getPaperId() {
+int QuestionPaper::getPaperId() const {
     return paperId;
 }
 
-int QuestionPaper::getExamId() {
+int QuestionPaper::getExamId() const {
     return examId;
 }
 
-string QuestionPaper::getSubject() {
+string QuestionPaper::getSubject() const {
     return subject;
 }
 
-int QuestionPaper::getTotalMarks() {
+int QuestionPaper::getTotalMarks() const {
     return totalMarks;
 }

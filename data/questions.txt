@@ -1,0 +1,10 @@
+1,101,MCQ,1,B,Which OOP concept bundles data and functions inside a class?,Inheritance,Encapsulation,Recursion,Overloading
+2,101,MCQ,1,C,What makes a C++ class abstract?,A private constructor,A static member,A pure virtual function,A friend function
+3,101,MCQ,1,A,Which access specifier hides members from code outside the class?,private,public,global,extern
+4,101,MCQ,1,D,Which function runs automatically when an object is created?,Destructor,main,Friend function,Constructor
+5,101,MCQ,1,B,Which keyword lets a base class function be overridden at runtime?,static,virtual,const,inline
+6,101,MCQ,1,C,Which operator accesses a member through a pointer?,.,::,->,&
+7,101,MCQ,1,A,What does a destructor do?,Cleans up when an object is destroyed,Creates an object,Copies an object,Reads a file
+8,101,TF,1,TRUE,A derived class can access the protected members of its base class.
+9,101,TF,1,FALSE,A class can have only one constructor.
+10,101,TF,1,TRUE,Function overloading is an example of compile-time polymorphism.

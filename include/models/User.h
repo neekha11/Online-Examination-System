@@ -2,27 +2,31 @@
 #define USER_H
 
 #include <string>
-using namespace std;
 
 class User {
 protected:
     int id;
-    string name;
-    string username;
-    string password;
+    std::string name;
+    std::string username;
+    std::string passwordHash;   // "salt$hash" - the plain password is never stored
 
 public:
-    User(int id, string name, string username, string password);
+    User(int id, const std::string& name,
+         const std::string& username, const std::string& password);
 
-    bool login(string username, string password);
+    virtual ~User() = default;
 
-    int getId();
+    bool login(const std::string& username, const std::string& password) const;
 
-    virtual void displayRole() = 0;
+    int getId() const;
+    std::string getName() const;
+    std::string getUsername() const;
 
-    virtual ~User() {}
-    string getName();
-    string getUsername();
+    // Used by the repositories to save / restore the stored hash
+    std::string getPasswordHash() const;
+    void setPasswordHash(const std::string& hash);
+
+    virtual void displayRole() const = 0;
 };
 
 #endif

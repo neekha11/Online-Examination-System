@@ -5,14 +5,17 @@
 
 class Student : public User {
 private:
-    string department;
+    std::string department;
     int year;
 
 public:
-    Student(int id, string name, string username,
-            string password, string department, int year);
+    Student(int id, const std::string& name, const std::string& username,
+            const std::string& password, const std::string& department, int year);
 
-    void displayRole() override;
+    void displayRole() const override;
+
+    std::string getDepartment() const;
+    int getYear() const;
 };
 
 #endif

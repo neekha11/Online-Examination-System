@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Student Dashboard – ExamEra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/dashboard.css" />
+  </head>
+  <body class="dash student-theme">
+    <div class="page">
+      <header class="header">
+        <a class="brand" href="student-dashboard.html">
+          <span class="brand-logo">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z" />
+              <path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" />
+            </svg>
+          </span>
+          <span class="brand-text"
+            ><strong>ExamEra</strong><small>ONLINE EXAMINATION</small></span
+          >
+        </a>
+        <nav class="header-nav">
+          <a href="#" class="help-link">Help center</a>
+          <span class="user-chip"
+            ><span class="avatar">AS</span
+            ><span class="name-text">Aarav Sharma</span></span
+          >
+          <a href="student-login.html" class="signout">Sign out</a>
+        </nav>
+      </header>
+
+      <main class="dash-main">
+        <div class="dash-title">
+          <div>
+            <h1>Welcome back, Aarav.</h1>
+            <p>
+              You have 3 examinations coming up. Your next one starts on 12
+              October.
+            </p>
+          </div>
+        </div>
+
+        <section class="stats three" aria-label="Summary">
+          <div class="stat">
+            <span>Upcoming exams</span><strong>3</strong
+            ><small>Next 30 days</small>
+          </div>
+          <div class="stat">
+            <span>Completed</span><strong>12</strong
+            ><small>This academic year</small>
+          </div>
+          <div class="stat">
+            <span>Average score</span><strong>82%</strong
+            ><small>Across all results</small>
+          </div>
+        </section>
+
+        <div class="grid">
+          <div>
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Scheduled examinations</h2>
+                <a href="#">View all</a>
+              </div>
+              <div class="exam-list">
+                <div class="exam-row">
+                  <div class="date-box">OCT<b>12</b></div>
+                  <div class="exam-info">
+                    <h3>Mathematics – Calculus II</h3>
+                    <p>10:00 AM · 90 minutes · 40 questions</p>
+                  </div>
+                  <a href="#" class="row-btn">View details</a>
+                </div>
+                <div class="exam-row">
+                  <div class="date-box">OCT<b>15</b></div>
+                  <div class="exam-info">
+                    <h3>Physics – Thermodynamics</h3>
+                    <p>2:00 PM · 60 minutes · 30 questions</p>
+                  </div>
+                  <a href="#" class="row-btn">View details</a>
+                </div>
+                <div class="exam-row">
+                  <div class="date-box">OCT<b>21</b></div>
+                  <div class="exam-info">
+                    <h3>English Literature – Unit Test</h3>
+                    <p>11:00 AM · 45 minutes · 25 questions</p>
+                  </div>
+                  <a href="#" class="row-btn">View details</a>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Recent results</h2>
+                <a href="#">View all</a>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Examination</th>
+                      <th>Date</th>
+                      <th>Score</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="name">Chemistry – Organic Basics</td>
+                      <td class="muted">30 Sep</td>
+                      <td>88%</td>
+                      <td><span class="chip pass">Passed</span></td>
+                    </tr>
+                    <tr>
+                      <td class="name">Computer Science – Algorithms</td>
+                      <td class="muted">24 Sep</td>
+                      <td>91%</td>
+                      <td><span class="chip pass">Passed</span></td>
+                    </tr>
+                    <tr>
+                      <td class="name">History – Modern India</td>
+                      <td class="muted">17 Sep</td>
+                      <td>74%</td>
+                      <td><span class="chip pass">Passed</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <aside>
+            <section class="panel">
+              <div class="panel-head"><h2>Subject progress</h2></div>
+              <div class="bars">
+                <div>
+                  <div class="bar-label">
+                    <span>Mathematics</span><span>85%</span>
+                  </div>
+                  <div class="bar"><i style="width: 85%"></i></div>
+                </div>
+                <div>
+                  <div class="bar-label">
+                    <span>Physics</span><span>78%</span>
+                  </div>
+                  <div class="bar"><i style="width: 78%"></i></div>
+                </div>
+                <div>
+                  <div class="bar-label">
+                    <span>Chemistry</span><span>88%</span>
+                  </div>
+                  <div class="bar"><i style="width: 88%"></i></div>
+                </div>
+                <div>
+                  <div class="bar-label">
+                    <span>Computer Science</span><span>91%</span>
+                  </div>
+                  <div class="bar"><i style="width: 91%"></i></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head"><h2>Before you begin</h2></div>
+              <ul class="instructions">
+                <li>
+                  <b>Check your connection.</b> Use a stable network before
+                  starting.
+                </li>
+                <li>
+                  <b>Join early.</b> Exams open 10 minutes before the start
+                  time.
+                </li>
+                <li>
+                  <b>Stay in the window.</b> Leaving the exam tab may be
+                  recorded.
+                </li>
+              </ul>
+            </section>
+          </aside>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>© 2026 Examora. All rights reserved.</span>
+        <span class="secure">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="4" y="11" width="16" height="10" rx="2" />
+            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+          </svg>
+          Secure access. Confident assessment.
+        </span>
+        <span class="footer-links"
+          ><a href="#">Privacy policy</a><a href="#">Terms of use</a></span
+        >
+      </footer>
+    </div>
+  </body>
+</html>
