@@ -103,9 +103,9 @@
             Sign in to see your scheduled examinations and results.
           </p>
 
-          <form class="form" id="login-form" novalidate>
+          <form class="form" id="login-form" data-role="student" novalidate>
             <div class="field">
-              <label for="user">Student ID or email</label>
+              <label for="user">Username</label>
               <div class="input-wrap">
                 <svg
                   width="14"
@@ -125,7 +125,7 @@
                   name="user"
                   type="text"
                   autocomplete="username"
-                  placeholder="e.g. STU2026-0142"
+                  placeholder="e.g. kaushika"
                   required
                 />
               </div>
@@ -187,7 +187,7 @@
             </div>
 
             <p class="form-error" id="form-error" role="alert">
-              Enter your student ID and password to continue.
+              Enter your username and password to continue.
             </p>
 
             <button type="submit" class="submit">
@@ -233,7 +233,7 @@
       </main>
 
       <footer class="footer">
-        <span>© 2026 Examora. All rights reserved.</span>
+        <span>© 2026 Examera. All rights reserved.</span>
         <span class="secure">
           <svg
             width="12"
@@ -256,6 +256,6 @@
       </footer>
     </div>
 
-    <script src="./js/student-login.js"></script>
+    <script src="./js/script.js"></script>
   </body>
 </html>

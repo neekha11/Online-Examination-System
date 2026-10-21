@@ -102,9 +102,9 @@
             Sign in to create examinations and review results.
           </p>
 
-          <form class="form" id="login-form" novalidate>
+          <form class="form" id="login-form" data-role="admin" novalidate>
             <div class="field">
-              <label for="user">Admin email</label>
+              <label for="user">Admin username</label>
               <div class="input-wrap">
                 <svg
                   width="14"
@@ -124,7 +124,7 @@
                   name="user"
                   type="text"
                   autocomplete="username"
-                  placeholder="name@institution.edu"
+                  placeholder="e.g. admin"
                   required
                 />
               </div>
@@ -186,7 +186,7 @@
             </div>
 
             <p class="form-error" id="form-error" role="alert">
-              Enter your admin email and password to continue.
+              Enter your admin username and password to continue.
             </p>
 
             <button type="submit" class="submit">
@@ -232,7 +232,7 @@
       </main>
 
       <footer class="footer">
-        <span>© 2026 Examora. All rights reserved.</span>
+        <span>© 2026 Examera. All rights reserved.</span>
         <span class="secure">
           <svg
             width="12"
@@ -255,6 +255,6 @@
       </footer>
     </div>
 
-    <script src="./js/admin-login.js"></script>
+    <script src="./js/script.js"></script>
   </body>
 </html>
