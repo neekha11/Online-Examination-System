@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Student Registration – ExamEra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/login.css" />
+    <style>
+      .plain input, .plain select { padding-left: 12px; }
+      .plain select { width: 100%; height: 38px; font: inherit; font-size: 11px; color: var(--ink); background: #f8f9ff; border: 1px solid var(--line); border-radius: 8px; padding-right: 10px; }
+      .plain select:focus { outline: none; background: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .hint { font-size: 9px; color: var(--muted); }
+      .form-ok { display: none; font-size: 10px; color: #1a8a4f; }
+      .form-ok.show { display: block; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <a class="brand" href="index.html">
+          <span class="brand-logo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z" /><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" /></svg>
+          </span>
+          <span class="brand-text"><strong>ExamEra</strong><small>ONLINE EXAMINATION</small></span>
+        </a>
+      </header>
+
+      <main class="login-main">
+        <a href="student-login.html" class="back-link">← Back to student login</a>
+        <section class="login-card student">
+          <div class="login-head">
+            <span class="icon-box">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z" /><path d="M6 12v5c3 2 9 2 12 0v-5" /><path d="M22 10v6" /></svg>
+            </span>
+            <div><h1>Create account</h1><span class="tag">FOR LEARNERS</span></div>
+          </div>
+          <p class="login-sub">Register once, then sign in to take your examinations.</p>
+
+          <form class="form plain" id="reg-form" novalidate>
+            <div class="field"><label for="name">Full name</label>
+              <div class="input-wrap"><input id="name" autocomplete="name" maxlength="100" required /></div></div>
+            <div class="field"><label for="username">Username</label>
+              <div class="input-wrap"><input id="username" autocomplete="username" maxlength="30" required /></div>
+              <span class="hint">3-30 letters, digits or underscores.</span></div>
+            <div class="field"><label for="password">Password</label>
+              <div class="input-wrap"><input id="password" type="password" autocomplete="new-password" required /></div>
+              <span class="hint">At least 8 characters, with a letter and a digit.</span></div>
+            <div class="field"><label for="confirm">Confirm password</label>
+              <div class="input-wrap"><input id="confirm" type="password" autocomplete="new-password" required /></div></div>
+            <div class="two">
+              <div class="field"><label for="dept">Department</label>
+                <div class="input-wrap"><input id="dept" maxlength="100" placeholder="e.g. CSE" required /></div></div>
+              <div class="field"><label for="year">Year</label>
+                <select id="year"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+            </div>
+            <p class="form-error" id="form-error" role="alert"></p>
+            <p class="form-ok" id="form-ok" role="status"></p>
+            <button type="submit" class="submit"><span>Create account</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
+          </form>
+          <p class="switch-role">Already registered? <a href="student-login.html">Sign in</a></p>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>© 2026 Examora. All rights reserved.</span>
+        <span class="secure">Secure access. Confident assessment.</span>
+        <span class="footer-links"><a href="#">Privacy policy</a><a href="#">Terms of use</a></span>
+      </footer>
+    </div>
+    <script src="./js/student-register.js"></script>
+  </body>
+</html>
