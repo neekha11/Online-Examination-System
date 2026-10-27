@@ -1,3 +1,4 @@
 101,C++ OOP Exam,30,10
 102,Data Structures Basics,20,10
 103,Computer Networks Basics,15,10
+104,Programming Fundamentals,45,5
