@@ -16,6 +16,7 @@
 #include "include/storage/ExamRepository.h"
 #include "include/storage/ResultRepository.h"
 #include "include/storage/StudentRepository.h"
+#include "include/utils/DataPath.h"
 #include "include/utils/Input.h"
 #include "include/utils/Validator.h"
 
@@ -25,10 +26,11 @@ using namespace std;
 
 namespace {
 
-const string STUDENT_FILE  = "data/students.txt";
-const string EXAM_FILE     = "data/exams.txt";
-const string QUESTION_FILE = "data/questions.txt";
-const string RESULT_FILE   = "data/results.txt";
+const string STUDENT_FILE  = dataPath("students.txt");
+const string EXAM_FILE     = dataPath("exams.txt");
+const string QUESTION_FILE = dataPath("questions.txt");
+const string RESULT_FILE   = dataPath("results.txt");
+const string ANSWER_FILE   = dataPath("answers.txt");
 
 // ---------- helpers ----------
 
@@ -268,7 +270,7 @@ void studentMenu(const Student& student) {
             case 1: { ExamRepository r; const vector<Exam> e = r.loadAll(EXAM_FILE);
                       if (e.empty()) cout << "No exams available yet." << endl; else printExams(e); break; }
             case 2: { unique_ptr<Exam> exam = chooseExam("Exam ID to take: ");
-                      if (exam) ExamSession(QUESTION_FILE, RESULT_FILE).run(student, *exam);
+                      if (exam) ExamSession(QUESTION_FILE, RESULT_FILE, ANSWER_FILE).run(student, *exam);
                       break; }
             case 3: showMyResults(student); break;
             case 0: return;
