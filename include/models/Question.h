@@ -32,6 +32,8 @@ public:
     virtual void display(int number) const = 0;
     virtual std::string serialize() const = 0;        // one line for questions.txt
     virtual std::vector<std::string> getOptions() const { return std::vector<std::string>(); }
+    // True for questions an admin must mark by hand (descriptive answers).
+    virtual bool isManuallyGraded() const { return false; }
 
     bool isCorrect(const std::string& answer) const;
 };

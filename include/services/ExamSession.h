@@ -11,10 +11,12 @@ class ExamSession {
 private:
     std::string questionFile;
     std::string resultFile;
+    std::string answerFile;
 
 public:
     ExamSession(const std::string& questionFile = "data/questions.txt",
-                const std::string& resultFile = "data/results.txt");
+                const std::string& resultFile = "data/results.txt",
+                const std::string& answerFile = "data/answers.txt");
 
     // Returns true if the exam was completed and the result saved.
     bool run(const Student& student, const Exam& exam) const;

@@ -1,4 +1,5 @@
 #include "../../include/services/QuestionService.h"
+#include "../../include/models/DescriptiveQuestion.h"
 #include "../../include/models/MCQQuestion.h"
 #include "../../include/models/TrueFalseQuestion.h"
 #include "../../include/utils/Validator.h"
@@ -61,6 +62,24 @@ bool QuestionService::addTrueFalse(int examId, const string& text, int marks,
     }
 
     TrueFalseQuestion question(repo.nextId(questionFile), examId, text, marks, correct);
+    if (!repo.saveQuestion(question, questionFile)) {
+        error = "Could not write to " + questionFile + ".";
+        return false;
+    }
+    return true;
+}
+
+bool QuestionService::addDescriptive(int examId, const string& text, int marks, string& error) const {
+    if (!Validator::isValidText(text, 300)) {
+        error = "Question text must be 1-300 characters and cannot contain commas.";
+        return false;
+    }
+    if (!isValidMarks(marks)) {
+        error = "Marks must be between 1 and 100.";
+        return false;
+    }
+
+    DescriptiveQuestion question(repo.nextId(questionFile), examId, text, marks);
     if (!repo.saveQuestion(question, questionFile)) {
         error = "Could not write to " + questionFile + ".";
         return false;

@@ -123,8 +123,8 @@ void addQuestion() {
     QuestionService service(QUESTION_FILE);
     string error;
 
-    cout << "\nQuestion type: 1) Multiple choice   2) True/False" << endl;
-    const int type = Input::readInt("Choose: ", 1, 2);
+    cout << "\nQuestion type: 1) Multiple choice   2) True/False   3) Descriptive" << endl;
+    const int type = Input::readInt("Choose: ", 1, 3);
     const string text = Input::readText("Question text (no commas): ", 300);
     const int marks = Input::readInt("Marks (1-100): ", 1, 100);
 
@@ -140,9 +140,11 @@ void addQuestion() {
         } while (letter.size() != 1 || toupper(letter[0]) < 'A' || toupper(letter[0]) > 'D');
 
         ok = service.addMCQ(exam->getExamId(), text, marks, options, letter[0], error);
-    } else {
+    } else if (type == 2) {
         const bool correct = Input::confirm("Is the statement TRUE?");
         ok = service.addTrueFalse(exam->getExamId(), text, marks, correct, error);
+    } else {
+        ok = service.addDescriptive(exam->getExamId(), text, marks, error);
     }
 
     cout << (ok ? "Question added." : "Could not add question: " + error) << endl;

@@ -1,4 +1,5 @@
 #include "../../include/storage/QuestionRepository.h"
+#include "../../include/models/DescriptiveQuestion.h"
 #include "../../include/models/MCQQuestion.h"
 #include "../../include/models/TrueFalseQuestion.h"
 #include "../../include/utils/FileUtils.h"
@@ -26,6 +27,8 @@ unique_ptr<Question> parseQuestion(const string& line) {
             return unique_ptr<Question>(
                 new MCQQuestion(id, examId, f[5], marks, options, f[4][0]));
         }
+        if (f[2] == "DESC" && f.size() == 6)
+            return unique_ptr<Question>(new DescriptiveQuestion(id, examId, f[5], marks));
         if (f[2] == "TF" && f.size() == 6 && (f[4] == "TRUE" || f[4] == "FALSE"))
             return unique_ptr<Question>(
                 new TrueFalseQuestion(id, examId, f[5], marks, f[4] == "TRUE"));

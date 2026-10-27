@@ -5,6 +5,7 @@
 #include "../../include/services/EvaluationService.h"
 #include "../../include/services/ExamService.h"
 #include "../../include/services/QuestionService.h"
+#include "../../include/services/SubmissionService.h"
 #include "../../include/storage/ResultRepository.h"
 #include "../../include/utils/Input.h"
 #include <iomanip>
@@ -12,8 +13,8 @@
 
 using namespace std;
 
-ExamSession::ExamSession(const string& questionFile, const string& resultFile)
-    : questionFile(questionFile), resultFile(resultFile) {
+ExamSession::ExamSession(const string& questionFile, const string& resultFile, const string& answerFile)
+    : questionFile(questionFile), resultFile(resultFile), answerFile(answerFile) {
 }
 
 bool ExamSession::run(const Student& student, const Exam& exam) const {
@@ -86,10 +87,8 @@ bool ExamSession::run(const Student& student, const Exam& exam) const {
 
     // ---- Evaluation, storage and result ----
     EvaluationService evaluator;
-    const Result result = evaluator.evaluate(student.getId(), exam, questions, answers);
-
-    if (!resultRepo.saveResult(result, resultFile))
-        cout << "Warning: your result could not be saved." << endl;
+    const Result result = SubmissionService(answerFile, resultFile)
+                              .submit(student.getId(), exam, questions, answers);
 
     cout << endl;
     result.display(exam.getTitle());

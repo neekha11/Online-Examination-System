@@ -30,6 +30,15 @@
           <button class="btn-primary" type="submit">Create exam</button><div class="msg" id="exam-msg"></div>
         </form></section>
     </div>
+    <section class="panel" id="scores-panel" style="margin-top:18px">
+      <div class="panel-head"><h2>Student scores</h2><span id="score-summary" style="font-size:10px;color:var(--muted)"></span></div>
+      <div class="f" style="margin-bottom:12px"><input id="score-filter" type="search" placeholder="Filter by student or exam name" /></div>
+      <div id="scores"></div>
+    </section>
+    <section class="panel hidden" id="grade-panel" style="margin-top:18px">
+      <div class="panel-head"><h2 id="grade-title"></h2><a href="#" id="grade-close">Close</a></div>
+      <div id="grade-list"></div>
+    </section>
     <section class="panel hidden" id="work" style="margin-top:18px">
       <div class="panel-head"><h2 id="work-title"></h2><a href="#" id="work-close">Close</a></div>
       <div class="tabs"><button class="tab on" data-tab="q">Questions</button><button class="tab" data-tab="r">Results</button></div>
@@ -37,7 +46,7 @@
         <h3 style="font-size:12px;font-weight:500;margin:16px 0 10px">Add a question</h3>
         <form class="form-grid" id="q-form">
           <div class="f-row">
-            <div class="f"><label for="qt">Type</label><select id="qt"><option value="MCQ">Multiple choice</option><option value="TF">True / False</option></select></div>
+            <div class="f"><label for="qt">Type</label><select id="qt"><option value="MCQ">Multiple choice</option><option value="TF">True / False</option><option value="DESC">Descriptive (marked by you)</option></select></div>
             <div class="f"><label for="qm">Marks</label><input id="qm" type="number" min="1" max="100" value="1" /></div>
           </div>
           <div class="f"><label for="qx">Question text (no commas)</label><textarea id="qx" required maxlength="300"></textarea></div>
@@ -45,7 +54,7 @@
             <div class="f-row"><div class="f"><label>Option A</label><input id="oa" /></div><div class="f"><label>Option B</label><input id="ob" /></div></div>
             <div class="f-row"><div class="f"><label>Option C</label><input id="oc" /></div><div class="f"><label>Option D</label><input id="od" /></div></div>
           </div>
-          <div class="f"><label for="qc">Correct answer</label><select id="qc"></select></div>
+          <div class="f" id="qc-wrap"><label for="qc">Correct answer</label><select id="qc"></select></div>
           <button class="btn-primary" type="submit">Add question</button><div class="msg" id="q-msg"></div>
         </form></div>
       <div id="tab-r" class="hidden"></div>
@@ -81,25 +90,88 @@
     $("#q-list").innerHTML = list.length
       ? list.map(({ question: q, correctAnswer }, i) => `<div class="q-item"><div>
           <h4>${i + 1}. ${esc(q.text)}</h4>
-          <p>${q.type === "MCQ" ? q.options.map((o, n) => `${String.fromCharCode(65 + n)}) ${esc(o)}`).join("  ·  ") + " — " : ""}Correct: <b>${correctAnswer}</b> · ${q.marks} mark${q.marks === 1 ? "" : "s"}</p></div>
+          <p>${q.type === "MCQ" ? q.options.map((o, n) => `${String.fromCharCode(65 + n)}) ${esc(o)}`).join("  ·  ") + " — " : ""}${q.type === "DESC" ? "Marked by you" : `Correct: <b>${correctAnswer}</b>`} · ${q.marks} mark${q.marks === 1 ? "" : "s"}</p></div>
           <button class="btn-ghost danger" data-del="${q.id}">Delete</button></div>`).join("")
       : `<div class="empty"><b>No questions yet</b>Add the first question below.</div>`;
   }
 
+  const statusChip = (r) => r.pending > 0
+    ? `<span class="chip scheduled">Pending review</span>`
+    : `<span class="chip ${r.passed ? "pass" : "draft"}">${r.passed ? "Passed" : "Failed"}</span>`;
+
+  function scoreTable(rows, showExam) {
+    return `<div class="table-wrap"><table><thead><tr><th>Student</th>${showExam ? "<th>Exam</th>" : ""}<th>Score</th><th>Grade</th><th>Status</th><th>Submitted</th><th></th></tr></thead><tbody>` +
+      rows.map(({ studentId, studentName, result: r }) => `<tr><td class="name">${esc(studentName)}</td>${showExam ? `<td>${esc(r.examTitle)}</td>` : ""}
+        <td>${r.score}/${r.totalMarks} (${r.percentage}%)</td><td>${esc(r.grade)}</td><td>${statusChip(r)}</td><td class="muted">${esc(r.submittedAt)}</td>
+        <td><button class="btn-ghost" data-grade data-exam="${r.examId}" data-student="${studentId}" data-name="${esc(studentName)}" data-title="${esc(r.examTitle)}">Answers</button></td></tr>`).join("") +
+      `</tbody></table></div>`;
+  }
+
   async function loadResults() {
     const rows = await call("GET", `/api/admin/exams/${current.id}/results`);
-    $("#tab-r").innerHTML = rows.length
-      ? `<div class="table-wrap"><table><thead><tr><th>Student</th><th>Score</th><th>Grade</th><th>Status</th><th>Submitted</th></tr></thead><tbody>` +
-        rows.map(({ studentName, result: r }) => `<tr><td class="name">${esc(studentName)}</td><td>${r.score}/${r.totalMarks} (${r.percentage}%)</td>
-          <td>${esc(r.grade)}</td><td><span class="chip ${r.passed ? "pass" : "draft"}">${r.passed ? "Passed" : "Failed"}</span></td>
-          <td class="muted">${esc(r.submittedAt)}</td></tr>`).join("") + `</tbody></table></div>`
+    $("#tab-r").innerHTML = rows.length ? scoreTable(rows, false)
       : `<div class="empty"><b>No attempts yet</b>Results appear here once students submit.</div>`;
   }
 
+  // ---- all students' scores ----
+  let allScores = [];
+  async function loadScores() {
+    allScores = await call("GET", "/api/admin/scores");
+    renderScores();
+  }
+  function renderScores() {
+    const q = $("#score-filter").value.trim().toLowerCase();
+    const rows = allScores.filter(({ studentName, result: r }) => !q || studentName.toLowerCase().includes(q) || r.examTitle.toLowerCase().includes(q));
+    const avg = rows.length ? Math.round(rows.reduce((n, x) => n + parseFloat(x.result.percentage), 0) / rows.length) : 0;
+    $("#score-summary").textContent = rows.length ? `${rows.length} attempt${rows.length === 1 ? "" : "s"} · average ${avg}%` : "";
+    $("#scores").innerHTML = rows.length ? scoreTable(rows.slice().reverse(), true)
+      : `<div class="empty"><b>${allScores.length ? "No matches" : "No attempts yet"}</b>${allScores.length ? "Try a different search." : "Scores appear here once students submit exams."}</div>`;
+  }
+  $("#score-filter").addEventListener("input", renderScores);
+
+  // ---- marking descriptive answers ----
+  let grading = null;
+  async function openGrading(examId, studentId, name, title) {
+    grading = { examId, studentId };
+    $("#grade-title").textContent = `Answers: ${name} · ${title}`;
+    $("#grade-panel").classList.remove("hidden");
+    $("#grade-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("#grade-list").innerHTML = `<div class="empty">Loading…</div>`;
+    try {
+      const list = await call("GET", `/api/admin/submissions/${examId}/${studentId}`);
+      $("#grade-list").innerHTML = list.length ? list.map((a) => `<div class="grade-item"><h4>${esc(a.question)}</h4>
+        <div class="essay-answer">${esc(a.answer)}</div>
+        <div class="grade-row"><label for="m${a.questionId}">Marks (0-${a.maxMarks})</label>
+          <input id="m${a.questionId}" type="number" min="0" max="${a.maxMarks}" value="${a.awarded < 0 ? "" : a.awarded}" />
+          <button class="btn-primary" data-save="${a.questionId}">Save marks</button>
+          <span class="msg" id="gm${a.questionId}">${a.awarded < 0 ? "Not marked yet" : "Marked"}</span></div></div>`).join("")
+        : `<div class="empty"><b>No written answers</b>This attempt has no descriptive answers to mark.</div>`;
+    } catch (err) { $("#grade-list").innerHTML = `<div class="empty">${esc(err.message)}</div>`; }
+  }
+
+  async function saveMarks(questionId) {
+    try {
+      const data = await call("POST", "/api/admin/grade", { examId: grading.examId, studentId: grading.studentId, questionId, marks: $(`#m${questionId}`).value });
+      const r = data.result;
+      say(`gm${questionId}`, `Saved. Score is now ${r.score}/${r.totalMarks}${r.pending ? ` (${r.pending} still pending)` : ""}.`, true);
+      await loadScores();
+      if (current) await loadResults();
+    } catch (err) { say(`gm${questionId}`, err.message, false); }
+  }
+
+  document.addEventListener("click", (e) => {
+    const g = e.target.closest("[data-grade]");
+    if (g) openGrading(g.dataset.exam, g.dataset.student, g.dataset.name, g.dataset.title);
+    const sv = e.target.closest("[data-save]");
+    if (sv) saveMarks(sv.dataset.save);
+  });
+  $("#grade-close").addEventListener("click", (e) => { e.preventDefault(); $("#grade-panel").classList.add("hidden"); });
+
   function setType() {
-    const mcq = $("#qt").value === "MCQ";
-    $("#mcq-opts").classList.toggle("hidden", !mcq);
-    $("#qc").innerHTML = mcq ? "<option>A</option><option>B</option><option>C</option><option>D</option>"
+    const t = $("#qt").value;
+    $("#mcq-opts").classList.toggle("hidden", t !== "MCQ");
+    $("#qc-wrap").classList.toggle("hidden", t === "DESC");
+    $("#qc").innerHTML = t === "MCQ" ? "<option>A</option><option>B</option><option>C</option><option>D</option>"
       : `<option value="TRUE">True</option><option value="FALSE">False</option>`;
   }
   $("#qt").addEventListener("change", setType);
@@ -151,5 +223,6 @@
     catch (err) { say("q-msg", err.message, false); }
   });
 
+  loadScores().catch(() => {});
   try { await loadExams(); } catch (err) { $("#stats").innerHTML = `<div class="empty">${esc(err.message)}</div>`; }
 })();

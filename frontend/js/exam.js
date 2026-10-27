@@ -72,7 +72,7 @@
         <button class="primary-btn ghost" id="clear" type="button">Clear all answers</button>
         <span class="hint" id="count"></span></div><div id="msg"></div>`;
 
-    view.addEventListener("change", updateCount);
+    view.addEventListener("input", updateCount);
     document.getElementById("submit").addEventListener("click", () => {
       const left = questions.length - Object.keys(collect()).length;
       const text = left ? `${left} question${left === 1 ? " is" : "s are"} unanswered. Submit anyway?` : "Submit your exam now?";
@@ -80,12 +80,15 @@
     });
     document.getElementById("clear").addEventListener("click", () => {
       view.querySelectorAll("input:checked").forEach((i) => (i.checked = false));
+      view.querySelectorAll("textarea").forEach((t) => (t.value = ""));
       updateCount();
     });
     updateCount();
   }
 
   function optionsFor(q) {
+    if (q.type === "DESC")
+      return `<textarea class="essay" name="q${q.id}" rows="6" maxlength="2000" placeholder="Type your answer here"></textarea>`;
     const choices = q.type === "TF"
       ? [["TRUE", "True"], ["FALSE", "False"]]
       : q.options.map((o, i) => [String.fromCharCode(65 + i), o]);
@@ -96,6 +99,11 @@
   function collect() {
     const answers = {};
     questions.forEach((q) => {
+      const box = q.type === "DESC" ? view.querySelector(`textarea[name="q${q.id}"]`) : null;
+      if (box) {
+        if (box.value.trim()) answers[q.id] = box.value.trim();
+        return;
+      }
       const picked = view.querySelector(`input[name="q${q.id}"]:checked`);
       if (picked) answers[q.id] = picked.value;
     });
@@ -118,10 +126,11 @@
   async function submit(auto) {
     submitting = true;
     clearInterval(ticker);
-    const answers = Object.entries(collect()).map(([id, a]) => `${id}:${a}`).join(",");
+    const params = {};
+    Object.entries(collect()).forEach(([id, a]) => (params["a_" + id] = a));
     view.querySelectorAll("button").forEach((b) => (b.disabled = true));
     try {
-      const data = await Api.call("POST", `/api/exams/${examId}/submit`, { answers });
+      const data = await Api.call("POST", `/api/exams/${examId}/submit`, params);
       showResult(data, auto);
     } catch (err) {
       submitting = false;
@@ -136,10 +145,10 @@
     const msg = late ? notice("Your submission arrived after the time limit, so no answers were counted.", "error")
       : auto ? notice("Time ran out, so your answers were submitted automatically.") : "";
 
-    view.innerHTML = `<h1>${esc(r.examTitle)}</h1>${msg}
+    view.innerHTML = `<h1>${esc(r.examTitle)}</h1>${msg}${r.pending > 0 ? notice(`${r.pending} written answer${r.pending === 1 ? " is" : "s are"} waiting to be marked, so your score may increase.`) : ""}
       <section class="panel q-card score-card">
         <div class="big">${r.score} / ${r.totalMarks}</div>
-        <div class="grade"><span class="chip ${r.passed ? "pass" : "draft"}">${r.passed ? "Passed" : "Failed"} · Grade ${esc(r.grade)}</span></div>
+        <div class="grade"><span class="chip ${r.pending > 0 ? "scheduled" : r.passed ? "pass" : "draft"}">${r.pending > 0 ? "Pending review" : r.passed ? "Passed" : "Failed"} · Grade ${esc(r.grade)}</span></div>
         <div class="exam-meta">${r.percentage}% · submitted ${esc(r.submittedAt)}</div>
         <div class="result-grid">
           <div><b>${r.correct}</b>Correct</div><div><b>${r.attempted}</b>Attempted</div><div><b>${r.totalQuestions}</b>Questions</div>
@@ -150,6 +159,9 @@
   }
 
   function reviewCard({ question: q, yourAnswer, correctAnswer, isCorrect }, i) {
+    if (q.type === "DESC")
+      return `<section class="panel q-card"><h3><small>QUESTION ${i + 1} · ${yourAnswer ? "AWAITING REVIEW" : "NOT ANSWERED"}</small>${esc(q.text)}</h3>
+        <div class="essay-answer">${yourAnswer ? esc(yourAnswer) : "No answer given."}</div></section>`;
     const choices = q.type === "TF"
       ? [["TRUE", "True"], ["FALSE", "False"]]
       : q.options.map((o, n) => [String.fromCharCode(65 + n), o]);

@@ -30,6 +30,29 @@ inline std::vector<std::string> split(const std::string& line, char delim = ',')
     return fields;
 }
 
+// Makes free text safe for the comma-separated data files.
+inline std::string escapeField(const std::string& s) {
+    std::string o;
+    for (std::size_t i = 0; i < s.size(); ++i) {
+        if (s[i] == '%') o += "%25";
+        else if (s[i] == ',') o += "%2C";
+        else if (s[i] == '\n') o += "%0A";
+        else if (s[i] != '\r') o += s[i];
+    }
+    return o;
+}
+
+inline std::string unescapeField(const std::string& s) {
+    std::string o;
+    for (std::size_t i = 0; i < s.size(); ++i) {
+        if (s[i] == '%' && i + 2 < s.size() + 0 && s.compare(i, 3, "%25") == 0) { o += '%'; i += 2; }
+        else if (s[i] == '%' && i + 2 < s.size() + 0 && s.compare(i, 3, "%2C") == 0) { o += ','; i += 2; }
+        else if (s[i] == '%' && i + 2 < s.size() + 0 && s.compare(i, 3, "%0A") == 0) { o += '\n'; i += 2; }
+        else o += s[i];
+    }
+    return o;
+}
+
 } // namespace StringUtils
 
 #endif

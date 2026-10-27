@@ -13,13 +13,14 @@ private:
     int attempted;
     int totalQuestions;
     std::string submittedAt;
+    int pending;                        // descriptive answers still waiting for marks
 
 public:
     static const int PASS_PERCENTAGE = 40;
 
     Result(int studentId, int examId, int score, int totalMarks,
            int correctCount, int attempted, int totalQuestions,
-           const std::string& submittedAt);
+           const std::string& submittedAt, int pending = 0);
 
     static std::string currentTimestamp();      // "YYYY-MM-DD HH:MM"
 
@@ -31,6 +32,7 @@ public:
     int getAttempted() const;
     int getTotalQuestions() const;
     std::string getSubmittedAt() const;
+    int getPending() const;
 
     double getPercentage() const;
     bool isPassed() const;
