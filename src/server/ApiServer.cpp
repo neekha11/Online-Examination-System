@@ -29,116 +29,138 @@ using httplib::Request;
 using httplib::Response;
 using httplib::Server;
 
-namespace {
+namespace
+{
 
-const string STUDENT_FILE = "data/students.txt";
-const string EXAM_FILE = "data/exams.txt";
-const string QUESTION_FILE = "data/questions.txt";
-const string RESULT_FILE = "data/results.txt";
-const string ANSWER_FILE = "data/answers.txt";
-const int GRACE_SECONDS = 15;           // allowance for network delay on submit
+    const string STUDENT_FILE = "data/students.txt";
+    const string EXAM_FILE = "data/exams.txt";
+    const string QUESTION_FILE = "data/questions.txt";
+    const string RESULT_FILE = "data/results.txt";
+    const string ANSWER_FILE = "data/answers.txt";
+    const int GRACE_SECONDS = 15; // allowance for network delay on submit
 
-struct Session {
-    string role;                        // "student" or "admin"
-    int studentId;
-    string name;
-};
+    struct Session
+    {
+        string role; // "student" or "admin"
+        int studentId;
+        string name;
+    };
 
-mutex mu;                               // one request at a time: the data files are plain text
-map<string, Session> sessions;
-map<pair<int, int>, long long> attempts; // (studentId, examId) -> start time (seconds)
+    mutex mu; // one request at a time: the data files are plain text
+    map<string, Session> sessions;
+    map<pair<int, int>, long long> attempts; // (studentId, examId) -> start time (seconds)
 
-long long nowSec() {
-    return chrono::duration_cast<chrono::seconds>(
-               chrono::steady_clock::now().time_since_epoch()).count();
-}
-
-string js(const string& s) {            // JSON string literal
-    string o = "\"";
-    for (size_t i = 0; i < s.size(); ++i) {
-        const char c = s[i];
-        if (c == '"') o += "\\\"";
-        else if (c == '\\') o += "\\\\";
-        else if (c == '\n') o += "\\n";
-        else if (static_cast<unsigned char>(c) >= 32) o += c;
+    long long nowSec()
+    {
+        return chrono::duration_cast<chrono::seconds>(
+                   chrono::steady_clock::now().time_since_epoch())
+            .count();
     }
-    return o + "\"";
-}
 
-string pct(double v) {
-    ostringstream o;
-    o << fixed << setprecision(1) << v;
-    return o.str();
-}
-
-void reply(Response& res, int status, const string& body) {
-    res.status = status;
-    res.set_content(body, "application/json");
-}
-void fail(Response& res, int status, const string& message) {
-    reply(res, status, "{\"error\":" + js(message) + "}");
-}
-
-string newToken() {
-    static mt19937_64 rng((random_device()()));
-    ostringstream o;
-    o << hex << rng() << rng() << rng();
-    return o.str();
-}
-
-bool requireRole(const Request& req, Response& res, const string& role, Session& out) {
-    const string header = req.get_header_value("Authorization");
-    const string token = header.rfind("Bearer ", 0) == 0 ? header.substr(7) : "";
-    map<string, Session>::const_iterator it = sessions.find(token);
-
-    if (it == sessions.end() || it->second.role != role) {
-        fail(res, 401, "Please sign in again.");
-        return false;
+    string js(const string &s)
+    { // JSON string literal
+        string o = "\"";
+        for (size_t i = 0; i < s.size(); ++i)
+        {
+            const char c = s[i];
+            if (c == '"')
+                o += "\\\"";
+            else if (c == '\\')
+                o += "\\\\";
+            else if (c == '\n')
+                o += "\\n";
+            else if (static_cast<unsigned char>(c) >= 32)
+                o += c;
+        }
+        return o + "\"";
     }
-    out = it->second;
-    return true;
-}
 
-string questionJson(const Question& q) {
-    string o = "{\"id\":" + to_string(q.getId()) + ",\"type\":" + js(q.getType()) +
-               ",\"text\":" + js(q.getText()) + ",\"marks\":" + to_string(q.getMarks()) +
-               ",\"options\":[";
-    const vector<string> options = q.getOptions();
-    for (size_t i = 0; i < options.size(); ++i)
-        o += (i ? "," : "") + js(options[i]);
-    return o + "]}";
-}
+    string pct(double v)
+    {
+        ostringstream o;
+        o << fixed << setprecision(1) << v;
+        return o.str();
+    }
 
-string resultJson(const Result& r, const string& title) {
-    return "{\"examId\":" + to_string(r.getExamId()) + ",\"examTitle\":" + js(title) +
-           ",\"score\":" + to_string(r.getScore()) + ",\"totalMarks\":" + to_string(r.getTotalMarks()) +
-           ",\"percentage\":" + pct(r.getPercentage()) + ",\"grade\":" + js(r.getGrade()) +
-           ",\"passed\":" + (r.isPassed() ? "true" : "false") +
-           ",\"correct\":" + to_string(r.getCorrectCount()) + ",\"attempted\":" + to_string(r.getAttempted()) +
-           ",\"totalQuestions\":" + to_string(r.getTotalQuestions()) +
-           ",\"submittedAt\":" + js(r.getSubmittedAt()) + ",\"pending\":" + to_string(r.getPending()) + "}";
-}
+    void reply(Response &res, int status, const string &body)
+    {
+        res.status = status;
+        res.set_content(body, "application/json");
+    }
+    void fail(Response &res, int status, const string &message)
+    {
+        reply(res, status, "{\"error\":" + js(message) + "}");
+    }
 
-string titleOf(int examId) {
-    ExamRepository repo;
-    unique_ptr<Exam> e = repo.findById(examId, EXAM_FILE);
-    return e ? e->getTitle() : "(deleted exam)";
-}
+    string newToken()
+    {
+        static mt19937_64 rng((random_device()()));
+        ostringstream o;
+        o << hex << rng() << rng() << rng();
+        return o.str();
+    }
 
-Result finish(int studentId, const Exam& exam, const vector<unique_ptr<Question> >& questions,
-              const AnswerSheet& sheet) {
-    return SubmissionService(ANSWER_FILE, RESULT_FILE).submit(studentId, exam, questions, sheet);
-}
+    bool requireRole(const Request &req, Response &res, const string &role, Session &out)
+    {
+        const string header = req.get_header_value("Authorization");
+        const string token = header.rfind("Bearer ", 0) == 0 ? header.substr(7) : "";
+        map<string, Session>::const_iterator it = sessions.find(token);
+
+        if (it == sessions.end() || it->second.role != role)
+        {
+            fail(res, 401, "Please sign in again.");
+            return false;
+        }
+        out = it->second;
+        return true;
+    }
+
+    string questionJson(const Question &q)
+    {
+        string o = "{\"id\":" + to_string(q.getId()) + ",\"type\":" + js(q.getType()) +
+                   ",\"text\":" + js(q.getText()) + ",\"marks\":" + to_string(q.getMarks()) +
+                   ",\"options\":[";
+        const vector<string> options = q.getOptions();
+        for (size_t i = 0; i < options.size(); ++i)
+            o += (i ? "," : "") + js(options[i]);
+        return o + "]}";
+    }
+
+    string resultJson(const Result &r, const string &title)
+    {
+        return "{\"examId\":" + to_string(r.getExamId()) + ",\"examTitle\":" + js(title) +
+               ",\"score\":" + to_string(r.getScore()) + ",\"totalMarks\":" + to_string(r.getTotalMarks()) +
+               ",\"percentage\":" + pct(r.getPercentage()) + ",\"grade\":" + js(r.getGrade()) +
+               ",\"passed\":" + (r.isPassed() ? "true" : "false") +
+               ",\"correct\":" + to_string(r.getCorrectCount()) + ",\"attempted\":" + to_string(r.getAttempted()) +
+               ",\"totalQuestions\":" + to_string(r.getTotalQuestions()) +
+               ",\"submittedAt\":" + js(r.getSubmittedAt()) + ",\"pending\":" + to_string(r.getPending()) + "}";
+    }
+
+    string titleOf(int examId)
+    {
+        ExamRepository repo;
+        unique_ptr<Exam> e = repo.findById(examId, EXAM_FILE);
+        return e ? e->getTitle() : "(deleted exam)";
+    }
+
+    Result finish(int studentId, const Exam &exam, const vector<unique_ptr<Question>> &questions,
+                  const AnswerSheet &sheet)
+    {
+        return SubmissionService(ANSWER_FILE, RESULT_FILE).submit(studentId, exam, questions, sheet);
+    }
 
 } // namespace
 
-int runApiServer(int port, const string& webRoot) {
+int runApiServer(int port, const string &webRoot)
+{
     Server svr;
     AuthService auth(STUDENT_FILE);
-    Admin admin(1, "Administrator", "admin", "Admin@123");   // same demo admin as the console app
+    Admin admin(1, "Administrator", "admin", "Admin@123"); // same demo admin as the console app
 
     // ---------- sign in / out ----------
-    svr.Post("/api/student/login", [&](const Request& req, Response& res) {
+    svr.Post("/api/student/login", [&](const Request &req, Response &res)
+             {
         lock_guard<mutex> lock(mu);
         unique_ptr<Student> s = auth.loginStudent(req.get_param_value("username"),
                                                   req.get_param_value("password"));
@@ -149,10 +171,10 @@ int runApiServer(int port, const string& webRoot) {
         sessions[token] = session;
         reply(res, 200, "{\"token\":" + js(token) + ",\"student\":{\"id\":" + to_string(s->getId()) +
                         ",\"name\":" + js(s->getName()) + ",\"department\":" + js(s->getDepartment()) +
-                        ",\"year\":" + to_string(s->getYear()) + "}}");
-    });
+                        ",\"year\":" + to_string(s->getYear()) + "}}"); });
 
-    svr.Post("/api/admin/login", [&](const Request& req, Response& res) {
+    svr.Post("/api/admin/login", [&](const Request &req, Response &res)
+             {
         lock_guard<mutex> lock(mu);
         if (!auth.authenticate(&admin, req.get_param_value("username"), req.get_param_value("password")))
             return fail(res, 401, "Wrong username or password.");
@@ -160,18 +182,18 @@ int runApiServer(int port, const string& webRoot) {
         const string token = newToken();
         Session session = {"admin", 0, admin.getName()};
         sessions[token] = session;
-        reply(res, 200, "{\"token\":" + js(token) + ",\"admin\":{\"name\":" + js(admin.getName()) + "}}");
-    });
+        reply(res, 200, "{\"token\":" + js(token) + ",\"admin\":{\"name\":" + js(admin.getName()) + "}}"); });
 
-    svr.Post("/api/logout", [&](const Request& req, Response& res) {
+    svr.Post("/api/logout", [&](const Request &req, Response &res)
+             {
         lock_guard<mutex> lock(mu);
         const string header = req.get_header_value("Authorization");
         if (header.rfind("Bearer ", 0) == 0)
             sessions.erase(header.substr(7));
-        reply(res, 200, "{\"ok\":true}");
-    });
+        reply(res, 200, "{\"ok\":true}"); });
 
-    svr.Post("/api/student/register", [&](const Request& req, Response& res) {
+    svr.Post("/api/student/register", [&](const Request &req, Response &res)
+             {
         lock_guard<mutex> lock(mu);
         const vector<Student> all = StudentRepository().loadAll(STUDENT_FILE);
         int id = 1;
@@ -183,11 +205,11 @@ int runApiServer(int port, const string& webRoot) {
                                   req.get_param_value("password"), req.get_param_value("department"),
                                   atoi(req.get_param_value("year").c_str()), error))
             return fail(res, 400, error);
-        reply(res, 200, "{\"ok\":true,\"id\":" + to_string(id) + "}");
-    });
+        reply(res, 200, "{\"ok\":true,\"id\":" + to_string(id) + "}"); });
 
     // ---------- student: exams and results ----------
-    svr.Get("/api/exams", [&](const Request& req, Response& res) {
+    svr.Get("/api/exams", [&](const Request &req, Response &res)
+            {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "student", s)) return;
@@ -207,10 +229,10 @@ int runApiServer(int port, const string& webRoot) {
                  ",\"attempted\":" + (done ? "true" : "false") +
                  ",\"inProgress\":" + (running && !done ? "true" : "false") + "}";
         }
-        reply(res, 200, o + "]");
-    });
+        reply(res, 200, o + "]"); });
 
-    svr.Get("/api/student/results", [&](const Request& req, Response& res) {
+    svr.Get("/api/student/results", [&](const Request &req, Response &res)
+            {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "student", s)) return;
@@ -219,11 +241,11 @@ int runApiServer(int port, const string& webRoot) {
         string o = "[";
         for (size_t i = 0; i < list.size(); ++i)
             o += (i ? "," : "") + resultJson(list[i], titleOf(list[i].getExamId()));
-        reply(res, 200, o + "]");
-    });
+        reply(res, 200, o + "]"); });
 
     // ---------- student: take an exam ----------
-    svr.Post(R"(/api/exams/(\d+)/start)", [&](const Request& req, Response& res) {
+    svr.Post(R"(/api/exams/(\d+)/start)", [&](const Request &req, Response &res)
+             {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "student", s)) return;
@@ -253,11 +275,11 @@ int runApiServer(int port, const string& webRoot) {
                    ",\"questions\":[";
         for (size_t i = 0; i < questions.size(); ++i)
             o += (i ? "," : "") + questionJson(*questions[i]);
-        reply(res, 200, o + "]}");
-    });
+        reply(res, 200, o + "]}"); });
 
     // One form field per answered question: a_<questionId>=<answer>   e.g. a_1=B&a_8=TRUE&a_11=free text
-    svr.Post(R"(/api/exams/(\d+)/submit)", [&](const Request& req, Response& res) {
+    svr.Post(R"(/api/exams/(\d+)/submit)", [&](const Request &req, Response &res)
+             {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "student", s)) return;
@@ -294,11 +316,11 @@ int runApiServer(int port, const string& webRoot) {
                       ",\"isCorrect\":" + (!mine.empty() && q.isCorrect(mine) ? "true" : "false") + "}";
         }
         reply(res, 200, "{\"late\":" + string(late ? "true" : "false") + ",\"result\":" +
-                        resultJson(r, exam->getTitle()) + ",\"review\":" + review + "]}");
-    });
+                        resultJson(r, exam->getTitle()) + ",\"review\":" + review + "]}"); });
 
     // ---------- admin: exams, questions, results ----------
-    svr.Get("/api/admin/exams", [&](const Request& req, Response& res) {
+    svr.Get("/api/admin/exams", [&](const Request &req, Response &res)
+            {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "admin", s)) return;
@@ -319,10 +341,10 @@ int runApiServer(int port, const string& webRoot) {
                  ",\"questions\":" + to_string(qs.size()) + ",\"totalMarks\":" + to_string(QuestionService::totalMarks(qs)) +
                  ",\"attempts\":" + to_string(taken) + "}";
         }
-        reply(res, 200, o + "]}");
-    });
+        reply(res, 200, o + "]}"); });
 
-    svr.Post("/api/admin/exams", [&](const Request& req, Response& res) {
+    svr.Post("/api/admin/exams", [&](const Request &req, Response &res)
+             {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "admin", s)) return;
@@ -341,10 +363,10 @@ int runApiServer(int port, const string& webRoot) {
             id = max(id, all[i].getExamId() + 1);
         if (!repo.saveExam(Exam(id, title, duration, planned), EXAM_FILE))
             return fail(res, 500, "The exam could not be saved.");
-        reply(res, 200, "{\"id\":" + to_string(id) + "}");
-    });
+        reply(res, 200, "{\"id\":" + to_string(id) + "}"); });
 
-    svr.Get(R"(/api/admin/exams/(\d+)/questions)", [&](const Request& req, Response& res) {
+    svr.Get(R"(/api/admin/exams/(\d+)/questions)", [&](const Request &req, Response &res)
+            {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "admin", s)) return;
@@ -354,10 +376,10 @@ int runApiServer(int port, const string& webRoot) {
         string o = "[";
         for (size_t i = 0; i < qs.size(); ++i)
             o += string(i ? "," : "") + "{\"question\":" + questionJson(*qs[i]) + ",\"correctAnswer\":" + js(qs[i]->getCorrectAnswer()) + "}";
-        reply(res, 200, o + "]");
-    });
+        reply(res, 200, o + "]"); });
 
-    svr.Post("/api/admin/questions", [&](const Request& req, Response& res) {
+    svr.Post("/api/admin/questions", [&](const Request &req, Response &res)
+             {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "admin", s)) return;
@@ -386,20 +408,20 @@ int runApiServer(int port, const string& webRoot) {
             return fail(res, 400, "Unknown question type.");
         }
         if (!ok) return fail(res, 400, error);
-        reply(res, 200, "{\"ok\":true}");
-    });
+        reply(res, 200, "{\"ok\":true}"); });
 
-    svr.Delete(R"(/api/admin/questions/(\d+))", [&](const Request& req, Response& res) {
+    svr.Delete(R"(/api/admin/questions/(\d+))", [&](const Request &req, Response &res)
+               {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "admin", s)) return;
 
         string error;
         if (!QuestionService(QUESTION_FILE).removeQuestion(stoi(req.matches[1]), error)) return fail(res, 404, error);
-        reply(res, 200, "{\"ok\":true}");
-    });
+        reply(res, 200, "{\"ok\":true}"); });
 
-    svr.Get(R"(/api/admin/exams/(\d+)/results)", [&](const Request& req, Response& res) {
+    svr.Get(R"(/api/admin/exams/(\d+)/results)", [&](const Request &req, Response &res)
+            {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "admin", s)) return;
@@ -417,11 +439,11 @@ int runApiServer(int port, const string& webRoot) {
             o += string(i ? "," : "") + "{\"studentId\":" + to_string(list[i].getStudentId()) + ",\"studentName\":" + js(name) +
                  ",\"result\":" + resultJson(list[i], title) + "}";
         }
-        reply(res, 200, o + "]");
-    });
+        reply(res, 200, o + "]"); });
 
     // All attempts of all students, for the "Student scores" table.
-    svr.Get("/api/admin/scores", [&](const Request& req, Response& res) {
+    svr.Get("/api/admin/scores", [&](const Request &req, Response &res)
+            {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "admin", s)) return;
@@ -440,11 +462,11 @@ int runApiServer(int port, const string& webRoot) {
             o += string(i ? "," : "") + "{\"studentId\":" + to_string(all[i].getStudentId()) +
                  ",\"studentName\":" + js(name) + ",\"result\":" + resultJson(all[i], title) + "}";
         }
-        reply(res, 200, o + "]");
-    });
+        reply(res, 200, o + "]"); });
 
     // The written answers of one student for one exam (examId, studentId in the URL).
-    svr.Get(R"(/api/admin/submissions/(\d+)/(\d+))", [&](const Request& req, Response& res) {
+    svr.Get(R"(/api/admin/submissions/(\d+)/(\d+))", [&](const Request &req, Response &res)
+            {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "admin", s)) return;
@@ -466,10 +488,10 @@ int runApiServer(int port, const string& webRoot) {
                  ",\"maxMarks\":" + to_string(maxMarks) + ",\"answer\":" + js(answers[i].text) +
                  ",\"awarded\":" + to_string(answers[i].awarded) + "}";
         }
-        reply(res, 200, o + "]");
-    });
+        reply(res, 200, o + "]"); });
 
-    svr.Post("/api/admin/grade", [&](const Request& req, Response& res) {
+    svr.Post("/api/admin/grade", [&](const Request &req, Response &res)
+             {
         lock_guard<mutex> lock(mu);
         Session s;
         if (!requireRole(req, res, "admin", s)) return;
@@ -484,17 +506,18 @@ int runApiServer(int port, const string& webRoot) {
                 atoi(req.get_param_value("questionId").c_str()),
                 atoi(req.get_param_value("marks").c_str()), error, &updated))
             return fail(res, 400, error);
-        reply(res, 200, "{\"result\":" + resultJson(updated, titleOf(examId)) + "}");
-    });
+        reply(res, 200, "{\"result\":" + resultJson(updated, titleOf(examId)) + "}"); });
 
     // ---------- static frontend ----------
-    if (!svr.set_mount_point("/", webRoot)) {
+    if (!svr.set_mount_point("/", webRoot))
+    {
         cerr << "Could not find the '" << webRoot << "' folder. Run the server from the project root." << endl;
         return 1;
     }
 
     cout << "ExamEra server running at http://localhost:" << port << "  (Ctrl+C to stop)" << endl;
-    if (!svr.listen("127.0.0.1", port)) {
+    if (!svr.listen("0.0.0.0", port))
+    {
         cerr << "Could not start on port " << port << " (is it already in use?)." << endl;
         return 1;
     }
