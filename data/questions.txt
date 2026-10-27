@@ -30,3 +30,9 @@
 308,103,TF,1,TRUE,TCP provides reliable delivery of data.
 309,103,TF,1,FALSE,UDP guarantees that packets arrive in order.
 310,103,TF,1,TRUE,A MAC address identifies a network interface at the data link layer.
+
+401,104,DESC,5,MANUAL,Explain the difference between a compiler and an interpreter.
+402,104,DESC,5,MANUAL,What is object-oriented programming? Describe any two of its principles.
+403,104,DESC,5,MANUAL,Describe how a stack differs from a queue and give one real-life example of each.
+404,104,DESC,5,MANUAL,What is recursion? Explain it with a simple example.
+405,104,DESC,10,MANUAL,Explain what happens when you type a website address into a browser and press Enter.
