@@ -22,6 +22,7 @@ public:
                 std::string& error) const;
     bool addTrueFalse(int examId, const std::string& text, int marks,
                       bool correct, std::string& error) const;
+    bool addDescriptive(int examId, const std::string& text, int marks, std::string& error) const;
     bool removeQuestion(int questionId, std::string& error) const;
 
     std::vector<std::unique_ptr<Question> > getQuestions(int examId) const;

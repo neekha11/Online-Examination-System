@@ -70,7 +70,7 @@
         <td class="name">${Api.esc(r.examTitle)}</td>
         <td class="muted">${Api.esc(r.submittedAt)}</td>
         <td>${r.score}/${r.totalMarks} (${r.percentage}%)</td>
-        <td><span class="chip ${r.passed ? "pass" : "draft"}">${r.passed ? "Passed" : "Failed"}</span></td></tr>`).join("")
+        <td><span class="chip ${r.pending > 0 ? "scheduled" : r.passed ? "pass" : "draft"}">${r.pending > 0 ? "Pending review" : r.passed ? "Passed" : "Failed"}</span></td></tr>`).join("")
     : `<tr><td colspan="4"><div class="empty"><b>No results yet</b>Your scores will appear here after your first exam.</div></td></tr>`;
 
   // Progress bars (replaces the sample subjects)
